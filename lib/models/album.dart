@@ -1,20 +1,12 @@
+import 'package:floor/floor.dart';
+
+@Entity(tableName: 'album')
 class Album {
- final int id;
- final String name;
+  @PrimaryKey(autoGenerate: true)
+  final int id;
+  final String title;
+  final String assetEntityThumbnailId;
+  final String path;
 
- Album({required this.id, required this.name});
-
- Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-    };
- }
-
- static Album fromMap(Map<String, dynamic> map) {
-    return Album(
-      id: map['id'],
-      name: map['name'],
-    );
- }
+  Album(this.id, this.title, this.assetEntityThumbnailId, this.path);
 }

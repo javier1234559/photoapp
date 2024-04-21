@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photoapp/models/media.dart';
 
 import 'detail_screen.dart';
 
@@ -15,7 +16,10 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  List<AssetEntity>? _medias;
+  int displayColumnCount = 4;
+  int numberOfItems = 100;
+
+  List<Media>? _medias;
 
   @override
   void initState() {
@@ -28,16 +32,20 @@ class _GalleryScreenState extends State<GalleryScreen> {
         await PhotoManager.getAssetPathList(onlyAll: true);
     final AssetPathEntity album = albums.firstWhere((element) => element.isAll);
     final List<AssetEntity> assets = await album.getAssetListRange(
-        start: 0, end: 100); // Adjust the range as needed
+        start: 0, end: numberOfItems); // Adjust the range as needed
 
     // Filter the assets to include only images and videos
     final List<AssetEntity> mediaList = assets.where((asset) {
       return asset.type == AssetType.image || asset.type == AssetType.video;
     }).toList();
 
-    print(mediaList);
+    // convert AssetEntity objects to Media objects
+    final List<Media> listmediaMapped = mediaList.map((asset) {
+      return Media.fromAssetEntityId(asset.id);
+    }).toList();
+
     setState(() {
-      _medias = mediaList; // Store AssetEntity objects
+      _medias = listmediaMapped; // Store AssetEntity objects
     });
   }
 
@@ -126,27 +134,40 @@ class _GalleryScreenState extends State<GalleryScreen> {
         mainAxisSpacing: 5, // Spacing between rows
       ),
       itemBuilder: (context, index) {
-        final AssetEntity asset = _medias![index];
+        return FutureBuilder<AssetEntity>(
+          future: _medias![index].getAssetEntity(), // This returns a Future<AssetEntity>
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              }
+              final AssetEntity asset = snapshot.data!;
 
-        return GestureDetector(
-          onTap: () => _openDetailScreen(asset),
-          child: SizedBox(
-            width: 150,
-            height: 150,
-            child: ClipRect(
-              child: FutureBuilder<Widget>(
-                future: _buildThumbnail(asset),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done &&
-                      snapshot.hasData) {
-                    return snapshot.data!;
-                  } else {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-            ),
-          ),
+              return GestureDetector(
+                onTap: () => _openDetailScreen(asset),
+                child: SizedBox(
+                  width: 150,
+                  height: 150,
+                  child: ClipRect(
+                    child: FutureBuilder<Widget>(
+                      future: _buildThumbnail(asset),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData) {
+                          return snapshot.data!;
+                        } else {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                      },
+                    ),
+                  ),
+                ),
+              );
+            } else {
+              return const Center(child: CircularProgressIndicator());
+            }
+          },
         );
       },
     );

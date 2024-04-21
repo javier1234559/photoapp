@@ -1,5 +1,5 @@
 name: photoapp
-description: "Photo and video flutter app"
+description: 'Photo and video flutter app'
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -31,7 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
@@ -41,8 +40,11 @@ dependencies:
   flutter_launcher_icons: ^0.13.1
   photo_manager_image_provider: ^2.1.1
   share_plus: ^8.0.3
+  floor: ^1.4.2
 
 dev_dependencies:
+  floor_generator: ^1.4.2
+  build_runner: ^2.1.2
   flutter_test:
     sdk: flutter
 
@@ -58,15 +60,13 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
 
   assets:
-   - assets/images/logo.png
-
+    - assets/images/logo.png
 
 flutter_launcher_icons:
   android: 'launcher_icon'
