@@ -15,7 +15,7 @@ class Media {
   late String type;
 
   // video properties
-  late String? duration;
+  String? duration;
 
 // Constructor that floor can use
   Media(

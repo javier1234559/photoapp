@@ -239,6 +239,20 @@ class _$MediaDao extends MediaDao {
   final DeletionAdapter<Media> _mediaDeletionAdapter;
 
   @override
+  Future<List<Media>> findAllMedia() async {
+    return _queryAdapter.queryList('SELECT * FROM media',
+        mapper: (Map<String, Object?> row) => Media(
+            row['id'] as String,
+            row['assetEntityId'] as String,
+            row['name'] as String,
+            row['path'] as String,
+            row['dateAddedTimestamp'] as int,
+            row['dateModifiedTimestamp'] as int?,
+            row['type'] as String,
+            row['duration'] as String?));
+  }
+
+  @override
   Future<List<Media>> findAllMediabyAlbumId(String albumId) async {
     return _queryAdapter.queryList('SELECT * FROM media WHERE albumId = ?1',
         mapper: (Map<String, Object?> row) => Media(
@@ -296,6 +310,13 @@ class _$MediaAlbumDao extends MediaAlbumDao {
   final InsertionAdapter<MediaAlbum> _mediaAlbumInsertionAdapter;
 
   final DeletionAdapter<MediaAlbum> _mediaAlbumDeletionAdapter;
+
+  @override
+  Future<List<MediaAlbum>> findAllMediaAlbum() async {
+    return _queryAdapter.queryList('SELECT * FROM media_album',
+        mapper: (Map<String, Object?> row) => MediaAlbum(
+            row['id'] as int?, row['imageId'] as int, row['albumId'] as int));
+  }
 
   @override
   Future<MediaAlbum?> findExistMediaFromAlbum(

@@ -32,6 +32,5 @@ class DBHelper {
       print(dbPath);
     }
 
-    await File(dbPath).delete();
   }
 }

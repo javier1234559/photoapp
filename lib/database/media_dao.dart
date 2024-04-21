@@ -4,6 +4,9 @@ import 'package:photoapp/models/media.dart';
 
 @dao
 abstract class MediaDao {
+  @Query('SELECT * FROM media')
+  Future<List<Media>> findAllMedia();
+
   @Query('SELECT * FROM media WHERE albumId = :albumId')
   Future<List<Media>> findAllMediabyAlbumId(String albumId);
 

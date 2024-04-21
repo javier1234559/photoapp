@@ -65,37 +65,63 @@ class _DetailScreenState extends State<DetailScreen> {
     });
   }
 
+  void test() async {
+    List<Media> test1 = await mediaDao.findAllMedia();
+    print(test1.length);
+    print(test1[0].assetEntityId.toString());
+    List<MediaAlbum> test2 = await mediaAlbumDao.findAllMediaAlbum();
+    print(test2.length);
+    print(test2[0].id.toString());
+  }
+
   Future<void> updateMediaToLoveAlbum(Media media, bool isLove) async {
-    final List<Album> loveAlbums = await albumDao.findAlbumByTitle('Love');
+    try {
+      final List<Album> loveAlbums = await albumDao.findAlbumByTitle('Love');
 
-    // Check if Love album exists, if not, create it
-    if (loveAlbums.isEmpty) {
-      final Album loveAlbum = Album(1, 'Love', '', '');
-      await albumDao.insertAlbum(loveAlbum);
-    }
-
-    // Get the Love album
-    final Album loveAlbum = loveAlbums.first;
-    int mediaId = int.parse(media.id);
-    final MediaAlbum? existingMediaAlbum =
-        await mediaAlbumDao.findExistMediaFromAlbum(loveAlbum.title, mediaId);
-
-    if (isLove) {
-      // If it's liked, add the media to the Love album
-      if (existingMediaAlbum == null) {
-        // save the media to the database
-        await mediaDao.insertMedia(media);
-
-        MediaAlbum mediaAlbum = MediaAlbum(null, loveAlbum.id, mediaId);
-        await mediaAlbumDao.insertMediaToAlbum(mediaAlbum);
+      // Check if Love album exists, if not, create it
+      if (loveAlbums.isEmpty) {
+        final Album loveAlbum = Album(1, 'Love', '', '');
+        await albumDao.insertAlbum(loveAlbum);
       }
-    } else {
-      // If it's unliked, remove the media from the Love album if it exists
-      if (existingMediaAlbum != null) {
-        // If the media is in the Love album, remove it
-        await mediaDao.deleteMedia(media);
-        await mediaAlbumDao.deleteMediaFromAlbum(existingMediaAlbum);
+
+      // Get the Love album
+      final Album loveAlbum = loveAlbums.first;
+
+      int mediaId = int.parse(media.id);
+      final MediaAlbum? existingMediaAlbum =
+          await mediaAlbumDao.findExistMediaFromAlbum(loveAlbum.title, mediaId);
+
+      if (isLove) {
+        // If it's liked, add the media to the Love album
+        if (existingMediaAlbum == null) {
+          // Save the media to the database
+          await mediaDao.insertMedia(media);
+
+          MediaAlbum mediaAlbum = MediaAlbum(null, loveAlbum.id, mediaId);
+          await mediaAlbumDao.insertMediaToAlbum(mediaAlbum);
+          test();
+          // Print success message
+          print('Media added to Love album successfully.');
+        } else {
+          print('Media is already in Love album.');
+        }
+      } else {
+        test();
+        print(existingMediaAlbum.toString());
+        // If it's unliked, remove the media from the Love album if it exists
+        if (existingMediaAlbum != null) {
+          // If the media is in the Love album, remove it
+          await mediaDao.deleteMedia(media);
+          await mediaAlbumDao.deleteMediaFromAlbum(existingMediaAlbum);
+
+          print('Media removed from Love album successfully.');
+        } else {
+          // Print message indicating media doesn't exist in the Love album
+          print('Media is not in Love album.');
+        }
       }
+    } catch (e) {
+      print('Error updating media to Love album: $e');
     }
   }
 
@@ -159,13 +185,14 @@ class _DetailScreenState extends State<DetailScreen> {
                     );
                   }
                 }),
-                _buildActionButton(Icons.favorite, 'Love', onPressed: () {
+                _buildActionButton(Icons.favorite, 'Love', onPressed: () async {
                   setState(() {
                     _isFavorite = !_isFavorite;
                   });
 
                   print('Favorite: $_isFavorite');
-                  updateMediaToLoveAlbum(media, _isFavorite);
+                  await updateMediaToLoveAlbum(
+                      media, _isFavorite); // Await here
                 }),
                 _buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
                 _buildActionButton(Icons.crop, 'Crop', onPressed: () {

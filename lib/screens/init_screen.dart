@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photoapp/screens/album.dart';
+import 'package:photoapp/screens/album_screen.dart';
 import 'package:photoapp/screens/gallery_screen.dart';
 import 'package:photoapp/screens/search_screen.dart';
 
