@@ -1,5 +1,5 @@
 import 'package:floor/floor.dart';
-import 'package:photoapp/models/album.dart';
+import 'package:photoapp/database/models/album.dart';
 
 @dao
 abstract class AlbumDao {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:photoapp/screens/album_screen.dart';
-import 'package:photoapp/screens/gallery_screen.dart';
-import 'package:photoapp/screens/search_screen.dart';
+import 'package:photoapp/presentation/screens/album_screen.dart';
+import 'package:photoapp/presentation/screens/gallery_screen.dart';
+import 'package:photoapp/presentation/screens/search_screen.dart';
 
 class InitScreen extends StatefulWidget {
   static String routeName = "/";

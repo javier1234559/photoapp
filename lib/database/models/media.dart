@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:floor/floor.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:photoapp/database/db_helper.dart';
 
 @Entity(tableName: 'media')
 class Media {
@@ -13,6 +14,7 @@ class Media {
   late int dateAddedTimestamp;
   late int? dateModifiedTimestamp;
   late String type;
+  bool isFavorite = false;
 
   // video properties
   String? duration;
@@ -26,7 +28,8 @@ class Media {
       this.dateAddedTimestamp,
       this.dateModifiedTimestamp,
       this.type,
-      this.duration);
+      this.duration,
+      this.isFavorite);
 
   // Private constructor
   Media._internal(this.assetEntityId);
@@ -50,7 +53,7 @@ class Media {
       type = asset.type.toString();
       dateAddedTimestamp = asset.createDateTime.millisecondsSinceEpoch;
       dateModifiedTimestamp = asset.modifiedDateTime.millisecondsSinceEpoch;
-
+      
       if (asset.type == AssetType.video) {
         duration = asset.videoDuration.toString().substring(2, 7);
       }

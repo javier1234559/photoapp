@@ -7,11 +7,11 @@ import 'package:photoapp/database/album_dao.dart';
 import 'package:photoapp/database/db_helper.dart';
 import 'package:photoapp/database/media_album_dao.dart';
 import 'package:photoapp/database/media_dao.dart';
-import 'package:photoapp/models/album.dart';
-import 'package:photoapp/models/media.dart';
-import 'package:photoapp/models/media_album.dart';
-import 'package:photoapp/screens/crop_screen.dart';
-import 'package:photoapp/screens/filter_screen.dart';
+import 'package:photoapp/database/models/album.dart';
+import 'package:photoapp/database/models/media.dart';
+import 'package:photoapp/database/models/media_album.dart';
+import 'package:photoapp/presentation/screens/crop_screen.dart';
+import 'package:photoapp/presentation/screens/filter_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 class DetailScreen extends StatefulWidget {
@@ -34,6 +34,12 @@ class _DetailScreenState extends State<DetailScreen> {
   @override
   void initState() {
     super.initState();
+
+    setState(() {
+      checkIsFavorite().then((value) {
+        _isFavorite = value;
+      });
+    });
 
     // Obtain the singleton instance of AppDatabase
     initializeDatabase();
@@ -65,63 +71,62 @@ class _DetailScreenState extends State<DetailScreen> {
     });
   }
 
-  void test() async {
-    List<Media> test1 = await mediaDao.findAllMedia();
-    print(test1.length);
-    print(test1[0].assetEntityId.toString());
-    List<MediaAlbum> test2 = await mediaAlbumDao.findAllMediaAlbum();
-    print(test2.length);
-    print(test2[0].id.toString());
+  Future<bool> checkIsFavorite() async {
+    final MediaAlbum? existingMediaAlbum = await mediaAlbumDao
+        .findExistMediaFromAlbum('Love', int.parse(media.id));
+    return existingMediaAlbum != null;
   }
+  // void test() async {
+  //   List<Media> test1 = await mediaDao.findAllMedia();
+  //   print(test1.length);
+  //   print(test1[0].assetEntityId.toString());
+  //   List<MediaAlbum> test2 = await mediaAlbumDao.findAllMediaAlbum();
+  //   print(test2.length);
+  //   print(test2[0].albumId.toString());
+  //   print(test2[0].imageId.toString());
+  // }
 
   Future<void> updateMediaToLoveAlbum(Media media, bool isLove) async {
     try {
       final List<Album> loveAlbums = await albumDao.findAlbumByTitle('Love');
-
-      // Check if Love album exists, if not, create it
       if (loveAlbums.isEmpty) {
-        final Album loveAlbum = Album(1, 'Love', '', '');
-        await albumDao.insertAlbum(loveAlbum);
+        await albumDao.insertAlbum(Album(1, 'Love', media.assetEntityId, ''));
       }
 
-      // Get the Love album
       final Album loveAlbum = loveAlbums.first;
-
-      int mediaId = int.parse(media.id);
-      final MediaAlbum? existingMediaAlbum =
-          await mediaAlbumDao.findExistMediaFromAlbum(loveAlbum.title, mediaId);
+      final MediaAlbum? existingMediaAlbum = await mediaAlbumDao
+          .findExistMediaFromAlbum(loveAlbum.title, int.parse(media.id));
 
       if (isLove) {
-        // If it's liked, add the media to the Love album
-        if (existingMediaAlbum == null) {
-          // Save the media to the database
-          await mediaDao.insertMedia(media);
-
-          MediaAlbum mediaAlbum = MediaAlbum(null, loveAlbum.id, mediaId);
-          await mediaAlbumDao.insertMediaToAlbum(mediaAlbum);
-          test();
-          // Print success message
-          print('Media added to Love album successfully.');
-        } else {
-          print('Media is already in Love album.');
-        }
+        _addMediaToAlbum(media, existingMediaAlbum, loveAlbum);
       } else {
-        test();
-        print(existingMediaAlbum.toString());
-        // If it's unliked, remove the media from the Love album if it exists
-        if (existingMediaAlbum != null) {
-          // If the media is in the Love album, remove it
-          await mediaDao.deleteMedia(media);
-          await mediaAlbumDao.deleteMediaFromAlbum(existingMediaAlbum);
-
-          print('Media removed from Love album successfully.');
-        } else {
-          // Print message indicating media doesn't exist in the Love album
-          print('Media is not in Love album.');
-        }
+        _removeMediaFromAlbum(media, existingMediaAlbum);
       }
     } catch (e) {
       print('Error updating media to Love album: $e');
+    }
+  }
+
+  void _addMediaToAlbum(
+      Media media, MediaAlbum? existingMediaAlbum, Album loveAlbum) async {
+    if (existingMediaAlbum == null) {
+      await mediaDao.insertMedia(media);
+      await mediaAlbumDao.insertMediaToAlbum(
+          MediaAlbum(null, int.parse(media.id), loveAlbum.id));
+      print('Media added to Love album successfully.');
+    } else {
+      print('Media is already in Love album.');
+    }
+  }
+
+  void _removeMediaFromAlbum(
+      Media media, MediaAlbum? existingMediaAlbum) async {
+    if (existingMediaAlbum != null) {
+      await mediaDao.deleteMedia(media);
+      await mediaAlbumDao.deleteMediaFromAlbum(existingMediaAlbum);
+      print('Media removed from Love album successfully.');
+    } else {
+      print('Media is not in Love album.');
     }
   }
 
@@ -191,8 +196,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   });
 
                   print('Favorite: $_isFavorite');
-                  await updateMediaToLoveAlbum(
-                      media, _isFavorite); // Await here
+                  await updateMediaToLoveAlbum(media, _isFavorite);
                 }),
                 _buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
                 _buildActionButton(Icons.crop, 'Crop', onPressed: () {

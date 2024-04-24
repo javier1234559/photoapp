@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
-import 'package:photoapp/models/media.dart';
+import 'package:photoapp/database/models/media.dart';
 
 import 'detail_screen.dart';
 
@@ -126,6 +126,10 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_medias == null) {
+      return const Center(child: Text('No iamges found'));
+    }
+
     return GridView.builder(
       itemCount: _medias?.length ?? 0,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -135,7 +139,8 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
       itemBuilder: (context, index) {
         return FutureBuilder<AssetEntity>(
-          future: _medias![index].getAssetEntity(), // This returns a Future<AssetEntity>
+          future: _medias![index]
+              .getAssetEntity(), // This returns a Future<AssetEntity>
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasError) {

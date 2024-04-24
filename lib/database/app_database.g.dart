@@ -91,7 +91,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `assetEntityThumbnailId` TEXT NOT NULL, `path` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `assetEntityId` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `assetEntityId` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `media_album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `imageId` INTEGER NOT NULL, `albumId` INTEGER NOT NULL)');
 
@@ -211,6 +211,7 @@ class _$MediaDao extends MediaDao {
                   'dateAddedTimestamp': item.dateAddedTimestamp,
                   'dateModifiedTimestamp': item.dateModifiedTimestamp,
                   'type': item.type,
+                  'isFavorite': item.isFavorite ? 1 : 0,
                   'duration': item.duration
                 }),
         _mediaDeletionAdapter = DeletionAdapter(
@@ -225,6 +226,7 @@ class _$MediaDao extends MediaDao {
                   'dateAddedTimestamp': item.dateAddedTimestamp,
                   'dateModifiedTimestamp': item.dateModifiedTimestamp,
                   'type': item.type,
+                  'isFavorite': item.isFavorite ? 1 : 0,
                   'duration': item.duration
                 });
 
@@ -249,7 +251,8 @@ class _$MediaDao extends MediaDao {
             row['dateAddedTimestamp'] as int,
             row['dateModifiedTimestamp'] as int?,
             row['type'] as String,
-            row['duration'] as String?));
+            row['duration'] as String?,
+            (row['isFavorite'] as int) != 0));
   }
 
   @override
@@ -263,7 +266,8 @@ class _$MediaDao extends MediaDao {
             row['dateAddedTimestamp'] as int,
             row['dateModifiedTimestamp'] as int?,
             row['type'] as String,
-            row['duration'] as String?),
+            row['duration'] as String?,
+            (row['isFavorite'] as int) != 0),
         arguments: [albumId]);
   }
 

@@ -3,7 +3,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photoapp/database/album_dao.dart';
 import 'package:photoapp/database/db_helper.dart';
-import 'package:photoapp/models/album.dart';
+import 'package:photoapp/database/models/album.dart';
 
 class AlbumScreen extends StatefulWidget {
   static String appBarName = "Album";
@@ -15,8 +15,8 @@ class AlbumScreen extends StatefulWidget {
 }
 
 class _AlbumScreenState extends State<AlbumScreen> {
-  int displayColumnCount = 4;
-  int numberOfItems = 100;
+  int displayColumnCount = 3;
+  int numberOfItems = 12;
   late AlbumDao albumDao;
   List<Album>? _albums;
 
@@ -42,6 +42,7 @@ class _AlbumScreenState extends State<AlbumScreen> {
       _albums = albums;
     });
   }
+
   Future<Widget> _buildThumbnail(AssetEntity asset) async {
     if (asset.type == AssetType.video) {
       // If it's a video, build video player thumbnail and display video duration
@@ -115,35 +116,20 @@ class _AlbumScreenState extends State<AlbumScreen> {
       ),
       itemBuilder: (context, index) {
         return FutureBuilder<AssetEntity>(
-          future: _albums![index]
-              .getThumbnailAssetEntity(), // This returns a Future<AssetEntity>
+          future: _albums![index].getThumbnailAssetEntity(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
+                return Center(child: Text('Error: ${snapshot.error}'));
               }
-              final AssetEntity asset = snapshot.data!;
 
-              return GestureDetector(
-                onTap: () => _openDetailAlbum(asset),
-                child: SizedBox(
-                  width: 150,
-                  height: 150,
-                  child: ClipRect(
-                    child: FutureBuilder<Widget>(
-                      future: _buildThumbnail(asset),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData) {
-                          return snapshot.data!;
-                        } else {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                      },
-                    ),
-                  ),
-                ),
+              final AssetEntity asset = snapshot.data!;
+              return AssetEntityImage(
+                asset,
+                isOriginal: false,
+                fit: BoxFit.cover,
+                thumbnailSize: const ThumbnailSize.square(300),
+                thumbnailFormat: ThumbnailFormat.jpeg,
               );
             } else {
               return const Center(child: CircularProgressIndicator());
