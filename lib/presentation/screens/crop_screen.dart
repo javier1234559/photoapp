@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
+import 'package:photoapp/domain/model/media.dart';
 
 class CropScreen extends StatefulWidget {
   static String appBarName = "Crop";
   static String routeName = "/crop";
 
-  final AssetEntity asset;
-  const CropScreen({super.key, required this.asset});
+  final Media media;
+  const CropScreen({super.key, required this.media});
 
   @override
   State<CropScreen> createState() => _CropScreenState();

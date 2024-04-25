@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:photoapp/database/app_database.dart';
+import 'package:photoapp/data/app_database.dart';
+import 'package:photoapp/utils/logger.dart';
 
 class DBHelper {
   static const String databaseName = 'app_database.db';
-
   static AppDatabase? _instance;
 
   // Private constructor to prevent instantiation
@@ -25,12 +25,9 @@ class DBHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String dbPath = '${documentsDirectory.path}/$databaseName';
 
-    print(dbPath);
-
     if (await File(dbPath).exists()) {
-      print("Delete database file");
-      print(dbPath);
+      LoggingUtil.logDebug("Delete database file");
+      LoggingUtil.logDebug("Database file path: $dbPath");
     }
-
   }
 }

@@ -1,11 +1,11 @@
 import 'package:floor/floor.dart';
 
 @Entity(tableName: 'media_album')
-class MediaAlbum {
+class MediaAlbumEntity {
   @PrimaryKey(autoGenerate: true)
-  final int? id;
+  final int id;
   final int imageId;
   final int albumId;
 
-  MediaAlbum(this.id, this.imageId, this.albumId);
+  MediaAlbumEntity(this.id, this.imageId, this.albumId);
 }

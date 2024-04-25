@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:photo_manager/photo_manager.dart';
-import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photoapp/domain/model/media.dart';
 
 class FilterScreen extends StatefulWidget {
-  final AssetEntity asset;
+  final Media media;
   static String appBarName = "Filter";
   static String routeName = "/filter";
-  const FilterScreen({super.key, required this.asset});
+  const FilterScreen({super.key, required this.media});
 
   @override
   State<FilterScreen> createState() => _FilterScreenState();
@@ -22,16 +21,16 @@ class _FilterScreenState extends State<FilterScreen> {
         title: Text(FilterScreen.appBarName),
       ),
       // backgroundColor: Colors.black26,
-      body: Center(
-        child: Hero(
-          tag: widget.asset.id, // Unique tag for Hero widget
-          child: AssetEntityImage(
-            widget.asset,
-            isOriginal: true, // Load the original image
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
+      // body: Center(
+      //   child: Hero(
+      //     tag: widget.media.id, // Unique tag for Hero widget
+      //     child: mediaEntityImage(
+      //       widget.media,
+      //       isOriginal: true, // Load the original image
+      //       fit: BoxFit.contain,
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

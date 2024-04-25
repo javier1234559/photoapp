@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/presentation/screens/album_screen.dart';
 import 'package:photoapp/presentation/screens/gallery_screen.dart';
 import 'package:photoapp/presentation/screens/init_screen.dart';
 import 'package:photoapp/presentation/screens/search_screen.dart';
 import 'package:photoapp/utils/theme.dart';
+import 'package:provider/provider.dart';
 
 final Map<String, WidgetBuilder> routes = {
   InitScreen.routeName: (context) => const InitScreen(),
@@ -13,7 +16,19 @@ final Map<String, WidgetBuilder> routes = {
 };
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => GalleryViewModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => AlbumViewModel(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
