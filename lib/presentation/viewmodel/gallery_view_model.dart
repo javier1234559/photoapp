@@ -7,15 +7,23 @@ import 'package:photoapp/utils/permission.dart';
 class GalleryViewModel extends ChangeNotifier {
   late final MediaRepository mediaRepository;
 
-  List<Media> medias = [];
-  List<Media> get mediaList => medias;
+  List<Media> _medias = [];
+
+  List<Media> get medias => _medias;
+
+  set medias(List<Media> value) {
+    _medias = value;
+    notifyListeners(); // Notify listeners to rebuild the UI
+  }
 
   GalleryViewModel() {
     LoggingUtil.logInfor('Initializing GalleryViewModel...');
     mediaRepository = AssetMediaRepository();
+    loadRecentMedia();
+    notifyListeners();
   }
 
-  Future<List<Media>> loadRecentMedia({offset = 0, limit = 100}) async {
+  Future<List<Media>> loadRecentMedia({offset = 0, limit = 30}) async {
     await PermissionHandler.requestPermissions();
     medias = await mediaRepository.getAllMedia(offset, limit);
     LoggingUtil.logInfor('Media loaded: ${medias.length} items');

@@ -9,6 +9,7 @@ import 'package:photoapp/utils/logger.dart';
 class DetailScreenViewModel extends ChangeNotifier {
   Media currentMedia;
   late final MediaLocalRepository mediaRepository;
+  bool get isFavorite => currentMedia.isFavorite;
 
   DetailScreenViewModel(this.currentMedia) {
     _initialDatabase();
@@ -21,7 +22,6 @@ class DetailScreenViewModel extends ChangeNotifier {
     mediaRepository = MediaLocalRepository(mediaDao: mediaDao, tagDao: tagDao);
   }
 
-  bool get isFavorite => currentMedia.isFavorite;
 
   void checkExistMediaAndCreate() async {
     try {

@@ -6,7 +6,7 @@ import 'package:photoapp/data/entity/media_entity.dart';
 abstract class AlbumDao {
   @Query('''
   SELECT media.* FROM media
-  INNER JOIN media_album ON media.id = media_album.imageId
+  INNER JOIN media_album ON media.id = media_album.mediaId
   INNER JOIN album ON media_album.albumId = album.id
   WHERE album.title = :albumName
 ''')
@@ -18,10 +18,16 @@ abstract class AlbumDao {
 
   @Query('''
   SELECT COUNT(*) FROM media_album 
-  WHERE imageId = :mediaId 
+  WHERE mediaId = :mediaId 
   AND albumId = (SELECT id FROM album WHERE title = :albumTitle)
 ''')
   Future<int?> checkExistMedia(String albumTitle, String mediaId);
+
+  @Query('''
+  INSERT INTO media_album (mediaId, albumId)
+  VALUES (:mediaId, (SELECT id FROM album WHERE title = :title))
+''')
+  Future<void> addMediaToExistAlbum(String title, String mediaId);
 
   @Query('SELECT * FROM album')
   Future<List<AlbumEntity>> findAllAlbumEntity();

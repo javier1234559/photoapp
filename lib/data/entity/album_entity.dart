@@ -11,11 +11,16 @@ class AlbumEntity {
   final String albumType;
 
   AlbumEntity({
-    this.id = 0, // Set the default value 
+    this.id = 0, // Set the default value
     required this.title,
     required this.thumbnailPath,
     required this.path,
     required this.numberOfItems,
     required this.albumType,
   });
+
+  @override
+  String toString() {
+    return 'AlbumEntity{id: $id, title: $title, thumbnailPath: $thumbnailPath, path: $path, numberOfItems: $numberOfItems, albumType: $albumType}';
+  }
 }

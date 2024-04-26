@@ -4,8 +4,8 @@ import 'package:floor/floor.dart';
 class MediaAlbumEntity {
   @PrimaryKey(autoGenerate: true)
   final int id;
-  final int imageId;
+  final int mediaId;
   final int albumId;
 
-  MediaAlbumEntity(this.id, this.imageId, this.albumId);
+  MediaAlbumEntity(this.id, this.mediaId, this.albumId);
 }

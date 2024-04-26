@@ -46,6 +46,7 @@ dependencies:
   image_picker: ^0.8.9
   path: ^1.8.2
   video_player: ^2.8.6
+  photo_view: ^0.15.0
   logger: ^2.2.0
   shared_preferences: ^2.2.3
 

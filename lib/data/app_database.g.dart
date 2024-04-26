@@ -93,7 +93,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `media_album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `imageId` INTEGER NOT NULL, `albumId` INTEGER NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `media_album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `mediaId` INTEGER NOT NULL, `albumId` INTEGER NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `tag` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `mediaId` INTEGER NOT NULL, PRIMARY KEY (`id`))');
 
@@ -175,7 +175,7 @@ class _$AlbumDao extends AlbumDao {
   @override
   Future<List<MediaEntity>> findAllMediaByAlbumName(String albumName) async {
     return _queryAdapter.queryList(
-        'SELECT media.* FROM media   INNER JOIN media_album ON media.id = media_album.imageId   INNER JOIN album ON media_album.albumId = album.id   WHERE album.title = ?1',
+        'SELECT media.* FROM media   INNER JOIN media_album ON media.id = media_album.mediaId   INNER JOIN album ON media_album.albumId = album.id   WHERE album.title = ?1',
         mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0),
         arguments: [albumName]);
   }
@@ -194,9 +194,19 @@ class _$AlbumDao extends AlbumDao {
     String mediaId,
   ) async {
     return _queryAdapter.query(
-        'SELECT COUNT(*) FROM media_album    WHERE imageId = ?2    AND albumId = (SELECT id FROM album WHERE title = ?1)',
+        'SELECT COUNT(*) FROM media_album    WHERE mediaId = ?2    AND albumId = (SELECT id FROM album WHERE title = ?1)',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [albumTitle, mediaId]);
+  }
+
+  @override
+  Future<void> addMediaToExistAlbum(
+    String title,
+    String mediaId,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'INSERT INTO media_album (mediaId, albumId)   VALUES (?2, (SELECT id FROM album WHERE title = ?1))',
+        arguments: [title, mediaId]);
   }
 
   @override
@@ -347,30 +357,15 @@ class _$MediaDao extends MediaDao {
   @override
   Future<List<AlbumEntity>> findAlbum(String mediaId) async {
     return _queryAdapter.queryList(
-        'SELECT album.* FROM album    INNER JOIN media_album ON album.id = media_album.albumId   WHERE media_album.imageId = ?1',
+        'SELECT album.* FROM album    INNER JOIN media_album ON album.id = media_album.albumId   WHERE media_album.mediaId = ?1',
         mapper: (Map<String, Object?> row) => AlbumEntity(id: row['id'] as int, title: row['title'] as String, thumbnailPath: row['thumbnailPath'] as String, path: row['path'] as String, numberOfItems: row['numberOfItems'] as int, albumType: row['albumType'] as String),
         arguments: [mediaId]);
   }
 
   @override
-  Future<List<MediaEntity>> findAllMediaByAlbumId(int albumId) async {
-    return _queryAdapter.queryList('SELECT * FROM media WHERE albumId = ?1',
-        mapper: (Map<String, Object?> row) => MediaEntity(
-            id: row['id'] as String,
-            name: row['name'] as String,
-            path: row['path'] as String,
-            dateAddedTimestamp: row['dateAddedTimestamp'] as int,
-            dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?,
-            type: row['type'] as String,
-            duration: row['duration'] as String?,
-            isFavorite: (row['isFavorite'] as int) != 0),
-        arguments: [albumId]);
-  }
-
-  @override
   Future<List<MediaEntity>> findAllMediaByTitleAlbum(String title) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM media WHERE albumId = (SELECT id FROM album WHERE title = ?1)',
+        'SELECT media.*    FROM media    INNER JOIN media_album ON media.id = media_album.mediaId   INNER JOIN album ON album.id = media_album.albumId   WHERE album.title = ?1',
         mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0),
         arguments: [title]);
   }

@@ -1,12 +1,14 @@
+import 'package:photo_manager/photo_manager.dart';
 import 'package:photoapp/data/dao/album_dao.dart';
 import 'package:photoapp/data/dao/media_dao.dart';
 import 'package:photoapp/data/dao/tag_dao.dart';
 import 'package:photoapp/data/entity/album_entity.dart';
 import 'package:photoapp/data/entity/media_entity.dart';
-import 'package:photoapp/data/entity/tag_entity.dart';
+import 'package:photoapp/data/mapper/album_mapper.dart';
+import 'package:photoapp/data/mapper/asset_mapper.dart';
+import 'package:photoapp/data/mapper/media_mapper.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
-import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/utils/logger.dart';
 
 abstract class AlbumRepository {
@@ -18,7 +20,11 @@ abstract class AlbumRepository {
 
   Future<bool> updateAlbum(Album album);
 
-  Future<void> addMediaToAlbum(String title, String albumType, Media media);
+  Future<void> addMediaToAlbum(String title, Media media);
+
+  Future<void> deleteAlbum(Album album);
+
+  Future<void> persistAlbumDefault();
 }
 
 class AlbumLocalRepository extends AlbumRepository {
@@ -27,37 +33,23 @@ class AlbumLocalRepository extends AlbumRepository {
   final TagDao tagDao;
 
   AlbumLocalRepository(
-      {required this.albumDao, required this.mediaDao, required this.tagDao});
+      {required this.albumDao, required this.mediaDao, required this.tagDao}) {
+    AlbumMapper.initialize(tagDao, mediaDao);
+  }
 
   @override
   Future<List<Album>> getAlbumPaginated(int offset, int limit) async {
     final List<AlbumEntity> albumEntities =
         await albumDao.getAllAlbum(offset, limit);
-    final List<Album> albums = [];
-
-    for (final albumEntity in albumEntities) {
-      final List<MediaEntity> mediaEntities =
-          await mediaDao.findAllMediaByTitleAlbum(albumEntity.title);
-      final List<Media> medias = await _mapMediaEntitiesToMedias(mediaEntities);
-      final Album album = _mapAlbumEntityToAlbum(albumEntity, medias);
-      albums.add(album);
-    }
-
+    final List<Album> albums = await Future.wait(albumEntities
+        .map((albumEntity) => AlbumMapper.transformToModel(albumEntity)));
     return albums;
   }
 
   @override
   Future<bool> updateAlbum(Album album) async {
     try {
-      final albumEntity = AlbumEntity(
-        id: album.id,
-        title: album.title,
-        thumbnailPath: album.thumbnailPath,
-        path: album.path,
-        numberOfItems: album.numberOfItems,
-        albumType: album.albumType,
-      );
-
+      final albumEntity = AlbumMapper.transformToEntity(album);
       await albumDao.updateAlbum(albumEntity);
       return true;
     } catch (e) {
@@ -67,91 +59,42 @@ class AlbumLocalRepository extends AlbumRepository {
   }
 
   @override
-  Future<void> addMediaToAlbum(
-      String title, String albumType, Media media) async {
+  Future<void> addMediaToAlbum(String title, Media media) async {
     try {
       // check existing album
       AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(title);
-      if (albumEntity != null) {
+      if (albumEntity == null) {
         // create new album
         albumEntity = AlbumEntity(
           title: title,
           thumbnailPath: media.path,
           path: media.path,
           numberOfItems: 1,
-          albumType: albumType,
+          albumType: title,
         );
+        await albumDao.insertAlbum(albumEntity);
       }
 
-      // insert media to database
-      await mediaDao.insertMedia(MediaEntity(
-        id: media.id,
-        name: media.name,
-        path: media.path,
-        dateAddedTimestamp: media.dateAddedTimestamp,
-        dateModifiedTimestamp: media.dateModifiedTimestamp,
-        type: media.type,
-        duration: media.duration,
-        isFavorite: media.isFavorite,
-      ));
-
-      await albumDao.insertAlbum(albumEntity!);
+      //check exist media
+      MediaEntity? mediaEntity = await mediaDao.findMediaById(media.id);
+      if (mediaEntity == null) {
+        await mediaDao.insertMedia(MediaEntity(
+          id: media.id,
+          name: media.name,
+          path: media.path,
+          dateAddedTimestamp: media.dateAddedTimestamp,
+          dateModifiedTimestamp: media.dateModifiedTimestamp,
+          type: media.type,
+          duration: media.duration,
+          isFavorite: media.isFavorite,
+        ));
+      }
+      // insert connection
+      await albumDao.addMediaToExistAlbum(title, media.id);
+      
     } catch (e) {
       LoggingUtil.logError('Error creating album: $e');
     }
-  }
-
-  //private methods
-  Future<List<Media>> _mapMediaEntitiesToMedias(
-      List<MediaEntity> mediaEntities) async {
-    final List<Media> medias = [];
-
-    for (final mediaEntity in mediaEntities) {
-      final List<Tag> tags = await _getTagsForMedia(mediaEntity);
-      final media = Media(
-        id: mediaEntity.id,
-        name: mediaEntity.name,
-        path: mediaEntity.path,
-        dateAddedTimestamp: mediaEntity.dateAddedTimestamp,
-        dateModifiedTimestamp: mediaEntity.dateModifiedTimestamp,
-        type: mediaEntity.type,
-        duration: mediaEntity.duration,
-        isFavorite: mediaEntity.isFavorite,
-        tags: tags,
-      );
-      medias.add(media);
-    }
-
-    return medias;
-  }
-
-  Future<List<Tag>> _getTagsForMedia(MediaEntity mediaEntity) async {
-    final List<Tag> tags = [];
-    final List<TagEntity> tagEntities =
-        await tagDao.findAllTagsByMediaId(mediaEntity.id);
-
-    for (final tagEntity in tagEntities) {
-      final tag = Tag(
-        id: tagEntity.id,
-        name: tagEntity.name,
-        color: tagEntity.color,
-      );
-      tags.add(tag);
-    }
-
-    return tags;
-  }
-
-  Album _mapAlbumEntityToAlbum(AlbumEntity albumEntity, List<Media> medias) {
-    return Album(
-      id: albumEntity.id,
-      title: albumEntity.title,
-      thumbnailPath: albumEntity.thumbnailPath,
-      path: albumEntity.path,
-      numberOfItems: albumEntity.numberOfItems,
-      albumType: albumEntity.albumType,
-      medias: medias,
-    );
   }
 
   @override
@@ -160,10 +103,7 @@ class AlbumLocalRepository extends AlbumRepository {
     if (albumEntity == null) {
       return null;
     }
-    final List<MediaEntity> mediaEntities =
-        await mediaDao.findAllMediaByTitleAlbum(albumEntity.title);
-    final List<Media> medias = await _mapMediaEntitiesToMedias(mediaEntities);
-    final Album album = _mapAlbumEntityToAlbum(albumEntity, medias);
+    final Album album = await AlbumMapper.transformToModel(albumEntity);
     return album;
   }
 
@@ -173,17 +113,82 @@ class AlbumLocalRepository extends AlbumRepository {
       //check exist media
       AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(album.title);
       if (albumEntity != null) {
-        throw Exception('Album already exists');
+        return;
       }
-      albumEntity = await _convertToAlbumEntity(album);
+      albumEntity = AlbumMapper.transformToEntity(album);
       await albumDao.insertAlbum(albumEntity);
     } catch (e) {
       throw Exception('Failed to create album: $e');
     }
   }
 
-  Future<MediaEntity> _convertToAlbumEntity(Album album) async {
-      
+  @override
+  Future<void> deleteAlbum(Album album) async {
+    try {
+      AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(album.title);
+      if (albumEntity != null) {
+        return;
+      }
+      albumEntity = AlbumMapper.transformToEntity(album);
+      await albumDao.deleteAlbum(albumEntity);
+    } catch (e) {
+      throw Exception('Failed to create album: $e');
+    }
+  }
 
+  @override
+  Future<List<AlbumEntity>> persistAlbumDefault() async {
+    final List<AssetPathEntity> albums =
+        await PhotoManager.getAssetPathList(onlyAll: true);
+    final List<AssetPathEntity> defaultAlbums = albums.where((album) {
+      LoggingUtil.logDebug(album.name);
+      return album.name == 'Download' ||
+          album.name == 'Camera' ||
+          album.name == 'Screenshots' ||
+          album.name == 'Recent';
+    }).toList();
+
+    List<AlbumEntity> albumEntities = [];
+    for (var album in defaultAlbums) {
+      // add all media to database
+      final List<AssetEntity> assets =
+          await album.getAssetListRange(start: 0, end: 100);
+      for (var asset in assets) {
+        Media media = await AssetMapper.transformAssetEntityToMedia(asset);
+        MediaMapper.initialize(tagDao);
+        //check exist media
+        MediaEntity? mediaEntity = await mediaDao.findMediaById(media.id);
+        if (mediaEntity != null) {
+          continue;
+        }
+
+        LoggingUtil.logDebug('Save new media : ${media.id}');
+        await mediaDao.insertMedia(MediaMapper.transformToEntity(media));
+      }
+
+      AlbumEntity albumEntity = AlbumEntity(
+        title: album.name,
+        thumbnailPath:
+            await assets.last.file.then((value) => value?.path ?? ''),
+        path: "/${album.name}",
+        numberOfItems: assets.length,
+        albumType: 'default',
+      );
+      LoggingUtil.logDebug(albumEntity.toString());
+
+      Album newAlbum = await AlbumMapper.transformToModel(albumEntity);
+      await createAlbum(newAlbum);
+      List<AlbumEntity> list = await albumDao.getAllAlbum(0, 20);
+      LoggingUtil.logDebug(list[0].toString());
+
+      // add meida to album
+      for (var asset in assets) {
+        Media media = await AssetMapper.transformAssetEntityToMedia(asset);
+        await addMediaToAlbum(album.name, media);
+      }
+
+      albumEntities.add(albumEntity);
+    }
+    return albumEntities;
   }
 }

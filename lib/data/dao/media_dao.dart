@@ -10,23 +10,25 @@ abstract class MediaDao {
   @Query('SELECT * FROM media WHERE id = :id')
   Future<MediaEntity?> findMediaById(String id);
 
-
   @Query('''
   SELECT album.* FROM album 
   INNER JOIN media_album ON album.id = media_album.albumId
-  WHERE media_album.imageId = :mediaId
+  WHERE media_album.mediaId = :mediaId
 ''')
   Future<List<AlbumEntity>> findAlbum(String mediaId);
 
-  @Query('SELECT * FROM media WHERE albumId = :albumId')
-  Future<List<MediaEntity>> findAllMediaByAlbumId(int albumId);
-
-  @Query(
-      'SELECT * FROM media WHERE albumId = (SELECT id FROM album WHERE title = :title)')
+  @Query('''
+  SELECT media.* 
+  FROM media 
+  INNER JOIN media_album ON media.id = media_album.mediaId
+  INNER JOIN album ON album.id = media_album.albumId
+  WHERE album.title = :title
+''')
   Future<List<MediaEntity>> findAllMediaByTitleAlbum(String title);
 
   @Query('SELECT EXISTS(SELECT 1 FROM album WHERE title = :name)')
   Future<bool?> checkExistAlbum(String name);
+
   @insert
   Future<void> insertMedia(MediaEntity media);
 

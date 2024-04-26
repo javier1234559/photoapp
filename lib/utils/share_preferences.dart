@@ -1,17 +1,11 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SharePreferenceUtil {
-  static SharedPreferences? _sharedPreferences;
+Future<String?> getThemeFromSharedPref() async {
+  SharedPreferences sharedPref = await SharedPreferences.getInstance();
+  return sharedPref.getString('theme');
+}
 
-  static Future init() async {
-    _sharedPreferences = await SharedPreferences.getInstance();
-  }
-
-  static Future setString(String key, String value) async {
-    await _sharedPreferences?.setString(key, value);
-  }
-
-  static String? getString(String key) {
-    return _sharedPreferences?.getString(key);
-  }
+void setThemeinSharedPref(String val) async {
+  SharedPreferences sharedPref = await SharedPreferences.getInstance();
+  sharedPref.setString('theme', val);
 }

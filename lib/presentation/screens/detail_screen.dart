@@ -1,8 +1,11 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photo_view/photo_view.dart';
+import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/presentation/viewmodel/detail_screen_view_model.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -28,7 +31,10 @@ class _DetailScreenState extends State<DetailScreen> {
 class _DetailScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final viewModel = Provider.of<DetailScreenViewModel>(context);
+    final DetailScreenViewModel viewModel =
+        Provider.of<DetailScreenViewModel>(context);
+    final GalleryViewModel galleryViewModel =
+        Provider.of<GalleryViewModel>(context);
 
     Widget buildActionButton(IconData icon, String title,
         {required VoidCallback onPressed}) {
@@ -63,15 +69,38 @@ class _DetailScreenContent extends StatelessWidget {
         title: Text(viewModel.currentMedia.name),
       ),
       backgroundColor: Colors.black26,
-      body: Center(
-        child: Hero(
-          tag: viewModel.currentMedia.id, // Unique tag for Hero widget
-          child: Image.file(
-            File(viewModel.currentMedia
-                .path), // Assuming you have the file path of the viewModel.currentMedia
-            fit: BoxFit.contain,
-          ),
-        ),
+      body: Consumer<GalleryViewModel>(
+        builder: (context, galleryViewModel, child) {
+          return PageView.builder(
+            itemCount: galleryViewModel.medias.length,
+            itemBuilder: (context, index) {
+              return FutureBuilder<AssetEntity?>(
+                future: AssetMapper.transformMediaToAssetEntity(
+                    galleryViewModel.medias[index]),
+                builder: (BuildContext context,
+                    AsyncSnapshot<AssetEntity?> assetSnapshot) {
+                  if (assetSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  } else if (assetSnapshot.hasError) {
+                    return Text('Error: ${assetSnapshot.error}');
+                  } else {
+                    return SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: PhotoView(
+                        imageProvider: AssetEntityImageProvider(
+                          assetSnapshot.data!,
+                          isOriginal: true,
+                        ),
+                      ),
+                    );
+                  }
+                },
+              );
+            },
+          );
+        },
       ),
       bottomNavigationBar: BottomAppBar(
         color: Colors.black26,
