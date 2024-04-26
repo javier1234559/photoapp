@@ -10,11 +10,15 @@ import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/utils/logger.dart';
 
 abstract class AlbumRepository {
+  Future<Album?> getAlbumByName(String name);
+
+  Future<void> createAlbum(Album album);
+
   Future<List<Album>> getAlbumPaginated(int offset, int limit);
 
   Future<bool> updateAlbum(Album album);
 
-  Future<void> createAlbum(String title, String albumType, Media media);
+  Future<void> addMediaToAlbum(String title, String albumType, Media media);
 }
 
 class AlbumLocalRepository extends AlbumRepository {
@@ -63,7 +67,8 @@ class AlbumLocalRepository extends AlbumRepository {
   }
 
   @override
-  Future<void> createAlbum(String title, String albumType, Media media) async {
+  Future<void> addMediaToAlbum(
+      String title, String albumType, Media media) async {
     try {
       // check existing album
       AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(title);
@@ -147,5 +152,38 @@ class AlbumLocalRepository extends AlbumRepository {
       albumType: albumEntity.albumType,
       medias: medias,
     );
+  }
+
+  @override
+  Future<Album?> getAlbumByName(String name) async {
+    AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(name);
+    if (albumEntity == null) {
+      return null;
+    }
+    final List<MediaEntity> mediaEntities =
+        await mediaDao.findAllMediaByTitleAlbum(albumEntity.title);
+    final List<Media> medias = await _mapMediaEntitiesToMedias(mediaEntities);
+    final Album album = _mapAlbumEntityToAlbum(albumEntity, medias);
+    return album;
+  }
+
+  @override
+  Future<void> createAlbum(Album album) async {
+    try {
+      //check exist media
+      AlbumEntity? albumEntity = await albumDao.findAlbumByTitle(album.title);
+      if (albumEntity != null) {
+        throw Exception('Album already exists');
+      }
+      albumEntity = await _convertToAlbumEntity(album);
+      await albumDao.insertAlbum(albumEntity);
+    } catch (e) {
+      throw Exception('Failed to create album: $e');
+    }
+  }
+
+  Future<MediaEntity> _convertToAlbumEntity(Album album) async {
+      
+
   }
 }

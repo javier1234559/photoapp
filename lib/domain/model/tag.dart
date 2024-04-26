@@ -8,4 +8,17 @@ class Tag {
     required this.name,
     required this.color,
   });
+
+  @override
+  toString() {
+    return 'Tag{id: $id, name: $name, color: $color}';
+  }
+
+  toJSon() {
+    return {
+      'id': id,
+      'name': name,
+      'color': color,
+    };
+  }
 }

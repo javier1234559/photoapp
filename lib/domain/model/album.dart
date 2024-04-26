@@ -18,4 +18,9 @@ class Album {
     required this.albumType,
     required this.medias,
   });
+
+  @override
+  toString() {
+    return 'Album{id: $id, title: $title, thumbnailPath: $thumbnailPath, path: $path, numberOfItems: $numberOfItems, albumType: $albumType, medias: $medias}';
+  }
 }

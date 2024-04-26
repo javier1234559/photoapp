@@ -22,4 +22,23 @@ class Media {
     this.isFavorite = false,
     required this.tags,
   });
+
+  @override
+  toString() {
+    return 'Media{id: $id, name: $name, path: $path, dateAddedTimestamp: $dateAddedTimestamp, dateModifiedTimestamp: $dateModifiedTimestamp, type: $type, duration: $duration, isFavorite: $isFavorite, tags: $tags}';
+  }
+
+  toJSon() {
+    return {
+      'id': id,
+      'name': name,
+      'path': path,
+      'dateAddedTimestamp': dateAddedTimestamp,
+      'dateModifiedTimestamp': dateModifiedTimestamp,
+      'type': type,
+      'duration': duration,
+      'isFavorite': isFavorite,
+      'tags': tags.map((tag) => tag.toJSon()).toList(),
+    };
+  }
 }

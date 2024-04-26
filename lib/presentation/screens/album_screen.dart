@@ -1,4 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:photoapp/domain/model/album.dart';
+import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
+import 'package:photoapp/utils/logger.dart';
+import 'package:provider/provider.dart';
 
 class AlbumScreen extends StatefulWidget {
   static String appBarName = "Album";
@@ -10,34 +16,80 @@ class AlbumScreen extends StatefulWidget {
 }
 
 class _AlbumScreenState extends State<AlbumScreen> {
-  final _albums = [];
-  @override
-  void initState() {
-    super.initState();
+  
+  Widget _buildThumbnail(Album album) {
+    return FutureBuilder<Widget>(
+      future: _generateThumbnail(album),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return snapshot.data!;
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
+    );
+  }
+
+  Future<Widget> _generateThumbnail(Album album) async {
+    File thumbnailImage = File(album.thumbnailPath);
+
+    return Image.file(thumbnailImage, fit: BoxFit.cover);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_albums == null || _albums.isEmpty) {
-      // Return a message when there are no albums
-      return const Center(child: Text('No albums found'));
-    }
+    return Consumer<AlbumViewModel>(
+      builder: (context, viewModel, child) {
+        return FutureBuilder<List<Album>>(
+          future: viewModel.loadAlbums(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              LoggingUtil.logDebug('Error loading album: ${snapshot.error}');
+              return Center(child: Text('Error loading album: $snapshot'));
+            } else {
+              final List<Album> albums = snapshot.data ?? [];
+              if (albums.isEmpty) {
+                return const Center(child: Text('No images found'));
+              }
 
-    return Center(
-      child: ListView.builder(
-        itemCount: _albums!.length,
-        itemBuilder: (context, index) {
-          final album = _albums![index];
-          return ListTile(
-            title: Text(album.name),
-            onTap: () {
-              // Navigate to the album screen
-              Navigator.pushNamed(context, AlbumScreen.routeName,
-                  arguments: album);
-            },
-          );
-        },
-      ),
+              return RefreshIndicator(
+                onRefresh: () async {
+                  viewModel.loadAlbums();
+                },
+                child: GridView.builder(
+                  itemCount: albums.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4, // Number of columns
+                    crossAxisSpacing: 5, // Spacing between columns
+                    mainAxisSpacing: 5, // Spacing between rows
+                  ),
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        // if (albums[index].type == "video") {
+                        //   _openVideoScreen(albums[index]);
+                        // } else {
+                        //   _openDetailScreen(albums[index]);
+                        // }
+                      },
+                      child: SizedBox(
+                        width: 150,
+                        height: 150,
+                        child: ClipRect(
+                          child: _buildThumbnail(albums[index]),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            }
+          },
+        );
+      },
     );
   }
 }

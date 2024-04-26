@@ -5,6 +5,7 @@ import 'package:photoapp/data/entity/media_entity.dart';
 import 'package:photoapp/data/entity/tag_entity.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/domain/model/tag.dart';
+import 'package:photoapp/utils/format.dart';
 import 'package:photoapp/utils/logger.dart';
 
 abstract class MediaRepository {
@@ -110,13 +111,6 @@ class MediaLocalRepository extends MediaRepository {
 }
 
 class AssetMediaRepository extends MediaRepository {
-  // Future<AssetEntity> convertMediaToAssetEntity(Media media) async {
-  //   AssetEntity? result = await AssetEntity.fromId(media.id);
-  //   if (result == null) {
-  //     throw Exception('Failed to convert Media to AssetEntity: $media');
-  //   }
-  //   return result;
-  // }
 
   @override
   Future<List<Media>> getAllMedia(int offset, int limit) async {
@@ -142,16 +136,19 @@ class AssetMediaRepository extends MediaRepository {
   }
 
   Future<Media> _convertAssetEntityToMedia(AssetEntity asset) async {
-    return Media(
+    Media converted = Media(
       id: asset.id,
       name: asset.title ?? 'No Title',
       path: await asset.file.then((value) => value?.path ?? ''),
       dateAddedTimestamp: asset.createDateTime.millisecondsSinceEpoch,
       dateModifiedTimestamp: asset.modifiedDateTime.millisecondsSinceEpoch,
-      type: asset.type.toString(),
-      duration:
-          asset.type == AssetType.video ? asset.duration.toString() : '00.00',
+      type: asset.type.name.toString(),
+      duration: asset.type == AssetType.video
+          ? Format.formatSeconds(asset.duration.toString())
+          : '00.00',
       tags: [],
     );
+    LoggingUtil.logDebug(converted.toString());
+    return converted;
   }
 }

@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/screens/video_screen.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import 'detail_screen.dart';
 
@@ -19,11 +21,22 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
+
   void _openDetailScreen(Media media) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DetailScreen(media: media),
+      ),
+    );
+  }
+
+  void _openVideoScreen(Media media) {
+    LoggingUtil.logDebug('Open video screen: ${media.path}');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoScreen(media: media),
       ),
     );
   }
@@ -45,16 +58,21 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Future<Widget> _generateThumbnail(Media media) async {
     File thumbnailImage = File(media.path);
 
-    if (!(await thumbnailImage.exists())) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
     // If it's a video, add additional UI elements
     if (media.type == AssetType.video.toString()) {
+      LoggingUtil.logDebug('Video thumbnail: ${media.path}');
+      final thumbnailPath = await VideoThumbnail.thumbnailFile(
+        video: thumbnailImage.path,
+        // thumbnailPath: (await getTemporaryDirectory()).path,
+        imageFormat: ImageFormat.JPEG,
+        maxHeight: 128,
+        quality: 75,
+      );
+      // Display the video duration on the bottom left of the image
       return Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          Image.file(thumbnailImage, fit: BoxFit.cover),
+          Image.file(File(thumbnailPath!), fit: BoxFit.cover),
           Positioned(
             bottom: 0,
             left: 0,
@@ -120,7 +138,13 @@ class _GalleryScreenState extends State<GalleryScreen> {
                   ),
                   itemBuilder: (context, index) {
                     return GestureDetector(
-                      onTap: () => _openDetailScreen(medias[index]),
+                      onTap: () {
+                        if (medias[index].type == "video") {
+                          _openVideoScreen(medias[index]);
+                        } else {
+                          _openDetailScreen(medias[index]);
+                        }
+                      },
                       child: SizedBox(
                         width: 150,
                         height: 150,
@@ -138,4 +162,5 @@ class _GalleryScreenState extends State<GalleryScreen> {
       },
     );
   }
+
 }
