@@ -109,17 +109,17 @@ class _GalleryScreenState extends State<GalleryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        Provider.of<GalleryViewModel>(context, listen: false).loadRecentMedia();
-      },
-      child: Consumer<GalleryViewModel>(
-        builder: (context, viewModel, child) {
-          if (viewModel.medias.isEmpty) {
-            return const Center(child: Text('No images found'));
-          }
+    return Consumer<GalleryViewModel>(
+      builder: (context, viewModel, child) {
+        if (viewModel.medias.isEmpty) {
+          return RefreshIndicator(
+              onRefresh: viewModel.refreshMedia,
+              child: const Center(child: Text('No images found')));
+        }
 
-          return GridView.builder(
+        return RefreshIndicator(
+          onRefresh: viewModel.refreshMedia,
+          child: GridView.builder(
             itemCount: viewModel.medias.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4, // Number of columns
@@ -144,10 +144,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
-
 }

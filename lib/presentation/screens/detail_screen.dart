@@ -4,6 +4,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/screens/add_album_screen.dart';
 import 'package:photoapp/presentation/viewmodel/detail_screen_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:provider/provider.dart';
@@ -33,8 +34,6 @@ class _DetailScreenContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final DetailScreenViewModel viewModel =
         Provider.of<DetailScreenViewModel>(context);
-    final GalleryViewModel galleryViewModel =
-        Provider.of<GalleryViewModel>(context);
 
     Widget buildActionButton(IconData icon, String title,
         {required VoidCallback onPressed}) {
@@ -126,12 +125,41 @@ class _DetailScreenContent extends StatelessWidget {
                 buildActionButton(Icons.crop, 'Crop', onPressed: () {
                   // Navigate to crop screen
                 }),
-                buildActionButton(Icons.filter_vintage_outlined, 'Filter',
-                    onPressed: () {
+                buildActionButton(Icons.filter_vintage_outlined, 'Filter', onPressed: () {
                   // Navigate to filter screen
+                  showMenu(
+                        context: context,
+                        position: const RelativeRect.fromLTRB(100, 600, 8, 0), // Vị trí của menu popup
+                        items: [
+                          const PopupMenuItem(
+                            child: Text('Thêm album'),
+                            value: 1,
+                          ),
+                          const PopupMenuItem(
+                            child: Text('Option 2'),
+                            value: 2,
+                          ),
+                        ],
+                        // Xử lý sự kiện khi một mục trong menu được chọn
+                        // Ở đây chúng ta in ra giá trị của mục được chọn
+                        // Bạn có thể thay đổi hành động này theo nhu cầu của mình
+                      ).then((value) {
+                        if (value == 1) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AddAlbumScreen()),
+                          );
+                        }
+                      });
                 }),
-                buildActionButton(Icons.more_vert, 'More', onPressed: () async {
+                buildActionButton(Icons.more_vert, 'Move', onPressed: () async {
                   // Handle more actions
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddAlbumScreen(),
+                    ),
+                  );
                 }),
               ],
             ),
