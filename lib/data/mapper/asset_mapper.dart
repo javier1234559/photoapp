@@ -1,7 +1,6 @@
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/utils/format.dart';
-import 'package:photoapp/utils/logger.dart';
 
 class AssetMapper {
   static Future<Media> transformAssetEntityToMedia(AssetEntity asset) async {

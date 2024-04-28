@@ -84,8 +84,11 @@ class AssetMediaRepository extends MediaRepository {
         await album.getAssetListRange(start: 0, end: limit);
 
     // Filter the assets to include only images and videos
+    for (var asset in assets) {
+      LoggingUtil.logDebug('Asset: ${asset.type} - ${asset.title}');
+    }
     final List<AssetEntity> mediaAssets = assets.where((asset) {
-      return asset.type == AssetType.image || asset.type == AssetType.video;
+      return  asset.type == AssetType.video;
     }).toList();
 
     final List<Media> mediaList = await Future.wait(mediaAssets

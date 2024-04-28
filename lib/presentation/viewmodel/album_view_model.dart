@@ -10,7 +10,7 @@ import 'package:photoapp/utils/permission.dart';
 
 class AlbumViewModel extends ChangeNotifier {
   late final AlbumRepository albumRepository;
-
+  Map<String, Album> albumMap = {};
   List<Album> _albums = [];
 
   List<Album> get albums => _albums;
@@ -33,7 +33,10 @@ class AlbumViewModel extends ChangeNotifier {
     albumRepository = AlbumLocalRepository(
         albumDao: albumDao, mediaDao: mediaDao, tagDao: tagDao);
     // Load default albums
-    await albumRepository.persistAlbumDefault();
+    albumMap = await albumRepository.persistAlbumDefault();
+    albumMap.entries.forEach((element) {
+      LoggingUtil.logInfor('Album: ${element.value}');
+    });
     await loadAlbums();
   }
 
@@ -45,7 +48,7 @@ class AlbumViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshAlbum() async {
-    await albumRepository.persistAlbumDefault();
+    albumMap = await albumRepository.persistAlbumDefault();
     await loadAlbums();
     notifyListeners();
   }

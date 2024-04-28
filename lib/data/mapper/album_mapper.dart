@@ -29,14 +29,13 @@ class AlbumMapper {
   }
 
   static Future<Album> transformToModel(AlbumEntity albumEntity) async {
-
     List<MediaEntity> mediaEntities =
         await mediaDao.findAllMediaByTitleAlbum(albumEntity.title);
     LoggingUtil.logInfor('Album have: ${mediaEntities.length} items');
 
     if (mediaEntities.isEmpty) {
       return Album(
-        id: albumEntity.id,
+        id: albumEntity.id!,
         title: albumEntity.title,
         thumbnailPath: albumEntity.thumbnailPath,
         path: albumEntity.path,
@@ -46,15 +45,15 @@ class AlbumMapper {
       );
     }
 
-    final List<Media> medias =
-        await Future.wait(mediaEntities.map((mediaEntity) async {
+    final List<Media> medias = [];
+    for (var mediaEntity in mediaEntities) {
       List<TagEntity> tagEntities =
           await tagDao.findAllTagsByMediaId(mediaEntity.id);
       List<Tag> tags = tagEntities
           .map((tagEntity) => Tag(
               id: tagEntity.id, name: tagEntity.name, color: tagEntity.color))
           .toList();
-      return Media(
+      medias.add(Media(
         id: mediaEntity.id,
         name: mediaEntity.name,
         path: mediaEntity.path,
@@ -64,11 +63,11 @@ class AlbumMapper {
         duration: mediaEntity.duration,
         isFavorite: mediaEntity.isFavorite,
         tags: tags,
-      );
-    }));
-
+      ));
+    }
+    LoggingUtil.logDebug('AlbumMapper: medias: ${medias.length}');
     return Album(
-      id: albumEntity.id,
+      id: albumEntity.id!,
       title: albumEntity.title,
       thumbnailPath: albumEntity.thumbnailPath,
       path: albumEntity.path,

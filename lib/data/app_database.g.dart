@@ -89,7 +89,7 @@ class _$AppDatabase extends AppDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `thumbnailPath` TEXT NOT NULL, `path` TEXT NOT NULL, `numberOfItems` INTEGER NOT NULL, `albumType` TEXT NOT NULL)');
+            'CREATE TABLE IF NOT EXISTS `album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT NOT NULL, `thumbnailPath` TEXT NOT NULL, `path` TEXT NOT NULL, `numberOfItems` INTEGER NOT NULL, `albumType` TEXT NOT NULL)');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
@@ -213,7 +213,7 @@ class _$AlbumDao extends AlbumDao {
   Future<List<AlbumEntity>> findAllAlbumEntity() async {
     return _queryAdapter.queryList('SELECT * FROM album',
         mapper: (Map<String, Object?> row) => AlbumEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             title: row['title'] as String,
             thumbnailPath: row['thumbnailPath'] as String,
             path: row['path'] as String,
@@ -228,7 +228,7 @@ class _$AlbumDao extends AlbumDao {
   ) async {
     return _queryAdapter.queryList('SELECT * FROM album LIMIT ?2 OFFSET ?1',
         mapper: (Map<String, Object?> row) => AlbumEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             title: row['title'] as String,
             thumbnailPath: row['thumbnailPath'] as String,
             path: row['path'] as String,
@@ -241,7 +241,7 @@ class _$AlbumDao extends AlbumDao {
   Future<AlbumEntity?> findAlbumByTitle(String title) async {
     return _queryAdapter.query('SELECT * FROM album WHERE title = ?1 LIMIT 1',
         mapper: (Map<String, Object?> row) => AlbumEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             title: row['title'] as String,
             thumbnailPath: row['thumbnailPath'] as String,
             path: row['path'] as String,
@@ -358,7 +358,7 @@ class _$MediaDao extends MediaDao {
   Future<List<AlbumEntity>> findAlbum(String mediaId) async {
     return _queryAdapter.queryList(
         'SELECT album.* FROM album    INNER JOIN media_album ON album.id = media_album.albumId   WHERE media_album.mediaId = ?1',
-        mapper: (Map<String, Object?> row) => AlbumEntity(id: row['id'] as int, title: row['title'] as String, thumbnailPath: row['thumbnailPath'] as String, path: row['path'] as String, numberOfItems: row['numberOfItems'] as int, albumType: row['albumType'] as String),
+        mapper: (Map<String, Object?> row) => AlbumEntity(id: row['id'] as int?, title: row['title'] as String, thumbnailPath: row['thumbnailPath'] as String, path: row['path'] as String, numberOfItems: row['numberOfItems'] as int, albumType: row['albumType'] as String),
         arguments: [mediaId]);
   }
 

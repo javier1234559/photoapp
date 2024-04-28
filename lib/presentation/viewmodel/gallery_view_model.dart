@@ -23,7 +23,7 @@ class GalleryViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Media>> loadRecentMedia({offset = 0, limit = 30}) async {
+  Future<List<Media>> loadRecentMedia({offset = 0, limit = 200}) async {
     await PermissionHandler.requestPermissions();
     medias = await mediaRepository.getAllMedia(offset, limit);
     LoggingUtil.logInfor('Media loaded: ${medias.length} items');

@@ -7,11 +7,19 @@ import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/utils/logger.dart';
 
 class DetailScreenViewModel extends ChangeNotifier {
-  Media currentMedia;
+  Media _currentMedia;
   late final MediaLocalRepository mediaRepository;
   bool get isFavorite => currentMedia.isFavorite;
 
-  DetailScreenViewModel(this.currentMedia) {
+  Media get currentMedia => _currentMedia;
+
+  set currentMedia(Media media) {
+    _currentMedia = media;
+    notifyListeners(); // Notify listeners of the change
+  }
+
+  DetailScreenViewModel(this._currentMedia) {
+    LoggingUtil.logDebug("DetailScreenViewModel created: $currentMedia.path");
     _initialDatabase();
   }
 
@@ -21,7 +29,6 @@ class DetailScreenViewModel extends ChangeNotifier {
     TagDao tagDao = appDatabase.tagDao;
     mediaRepository = MediaLocalRepository(mediaDao: mediaDao, tagDao: tagDao);
   }
-
 
   void checkExistMediaAndCreate() async {
     try {
