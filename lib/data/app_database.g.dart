@@ -95,7 +95,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `media_album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `mediaId` INTEGER NOT NULL, `albumId` INTEGER NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `tag` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `mediaId` INTEGER NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `tag` (`id` INTEGER, `name` TEXT NOT NULL, `color` TEXT NOT NULL, `mediaId` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -432,20 +432,37 @@ class _$TagDao extends TagDao {
   Future<List<TagEntity>> findAllTags() async {
     return _queryAdapter.queryList('SELECT * FROM tag',
         mapper: (Map<String, Object?> row) => TagEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             name: row['name'] as String,
             color: row['color'] as String,
-            mediaId: row['mediaId'] as int));
+            mediaId: row['mediaId'] as String));
   }
 
   @override
   Future<List<TagEntity>> findAllTagsByMediaId(String mediaId) async {
     return _queryAdapter.queryList('SELECT * FROM tag WHERE mediaId = ?1',
         mapper: (Map<String, Object?> row) => TagEntity(
-            id: row['id'] as int,
+            id: row['id'] as int?,
             name: row['name'] as String,
             color: row['color'] as String,
-            mediaId: row['mediaId'] as int),
+            mediaId: row['mediaId'] as String),
+        arguments: [mediaId]);
+  }
+
+  @override
+  Future<void> createHashTagToMedia(
+    String mediaId,
+    String name,
+    String color,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'INSERT INTO tag (name, color, mediaId) VALUES (?2, ?3, ?1)',
+        arguments: [mediaId, name, color]);
+  }
+
+  @override
+  Future<void> deleteAllTagToMedia(String mediaId) async {
+    await _queryAdapter.queryNoReturn('DELETE FROM tag WHERE mediaId = ?1',
         arguments: [mediaId]);
   }
 

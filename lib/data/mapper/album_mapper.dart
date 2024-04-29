@@ -51,7 +51,7 @@ class AlbumMapper {
           await tagDao.findAllTagsByMediaId(mediaEntity.id);
       List<Tag> tags = tagEntities
           .map((tagEntity) => Tag(
-              id: tagEntity.id, name: tagEntity.name, color: tagEntity.color))
+              id: tagEntity.id!, name: tagEntity.name, color: tagEntity.color))
           .toList();
       medias.add(Media(
         id: mediaEntity.id,

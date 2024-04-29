@@ -2,6 +2,7 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photoapp/data/dao/media_dao.dart';
 import 'package:photoapp/data/dao/tag_dao.dart';
 import 'package:photoapp/data/entity/media_entity.dart';
+import 'package:photoapp/data/entity/tag_entity.dart';
 import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/data/mapper/media_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';
@@ -37,6 +38,15 @@ class MediaLocalRepository extends MediaRepository {
       }
       mediaEntity = MediaMapper.transformToEntity(media);
       await mediaDao.updateMedia(mediaEntity);
+
+      //delete all tags and create again
+      await tagDao.deleteAllTagToMedia(media.id);
+
+      //create tags
+      for (var tag in media.tags) {
+        await tagDao.createHashTagToMedia(media.id, tag.name, tag.color.toString());
+      }
+
       LoggingUtil.logInfor('Update media with id: ${media.id}');
     } catch (e) {
       throw Exception('Failed to update media: $e');
@@ -72,7 +82,6 @@ class MediaLocalRepository extends MediaRepository {
         .map((mediaEntity) => MediaMapper.transformToModel(mediaEntity)));
     return medias;
   }
-
 }
 
 class AssetMediaRepository extends MediaRepository {

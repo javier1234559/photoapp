@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:photoapp/data/dao/album_dao.dart';
 import 'package:photoapp/data/dao/media_dao.dart';
 import 'package:photoapp/data/dao/tag_dao.dart';
 import 'package:photoapp/data/db_helper.dart';
 import 'package:photoapp/domain/album_repository.dart';
 import 'package:photoapp/domain/media_repository.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:video_player/video_player.dart';
 
@@ -105,6 +105,12 @@ class DetailScreenViewModel extends ChangeNotifier {
       LoggingUtil.logDebug("Remove from favorite list: ${currentMedia.path}");
     }
 
+    notifyListeners();
+  }
+
+  Future<void> creatNewHashTag(Tag tag) async {
+    currentMedia.tags.add(tag);
+    await mediaRepository.updateMedia(currentMedia);
     notifyListeners();
   }
 

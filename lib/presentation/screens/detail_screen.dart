@@ -4,6 +4,7 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/presentation/screens/add_album_screen.dart';
 import 'package:photoapp/presentation/viewmodel/detail_screen_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
@@ -213,8 +214,17 @@ class _DetailScreenState extends State<DetailScreen> {
                     await detailViewModel.toggleFavorite();
                   }),
                   buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
-                  buildActionButton(Icons.tag, 'Hash Tag', onPressed: () {
-                    // Navigate to crop screen
+                  buildActionButton(Icons.tag, 'Hash Tag', onPressed: () async {
+                    Tag? newTag = await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return const AddHashTag();
+                      },
+                    );
+                    if (newTag != null) {
+                      await detailViewModel.creatNewHashTag(newTag);
+                      Navigator.of(context).pop();
+                    }
                   }),
                   buildActionButton(Icons.more_vert, 'More',
                       onPressed: () async {
@@ -288,5 +298,44 @@ class _DetailScreenState extends State<DetailScreen> {
   void dispose() {
     detailViewModel.controller?.dispose();
     super.dispose();
+  }
+}
+
+class AddHashTag extends StatefulWidget {
+  const AddHashTag({super.key});
+
+  @override
+  State<AddHashTag> createState() => _AddHashTagState();
+}
+
+class _AddHashTagState extends State<AddHashTag> {
+  final TextEditingController _textFieldController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Add new hashtag'),
+      content: TextField(
+        controller: _textFieldController,
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            String hashTagName = _textFieldController.text;
+            Tag newTag = Tag(name: hashTagName, color: "0xff000000");
+            if (hashTagName.isNotEmpty) {
+              Navigator.of(context).pop(newTag);
+            }
+          },
+          child: const Text('Add'),
+        ),
+      ],
+    );
   }
 }

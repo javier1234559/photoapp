@@ -1,10 +1,10 @@
 class Tag {
-  int id;
+  int? id;
   String name;
   String color;
 
   Tag({
-    required this.id,
+    this.id,
     required this.name,
     required this.color,
   });

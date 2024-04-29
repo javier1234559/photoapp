@@ -1,4 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/screens/gallery_screen.dart';
+import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
+import 'package:photoapp/utils/logger.dart';
 
 class SearchScreen extends StatefulWidget {
   static String appBarName = "Search";
@@ -10,6 +17,17 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  // late AlbumViewModel _albumViewModel;
+  late GalleryViewModel _galleryViewModel;
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // _albumViewModel = AlbumViewModel();
+    _galleryViewModel = GalleryViewModel();
+  }
+
   // Example data for the search results
   List<String> searchResultsWithTags = ['Tag1', 'Tag2', 'Tag3'];
   List<String> searchResultsWithAlbums = ['Album1', 'Album2', 'Album3'];
@@ -32,20 +50,27 @@ class _SearchScreenState extends State<SearchScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller: _controller,
                       decoration: const InputDecoration(
                         hintText: 'Search...',
                         border: OutlineInputBorder(),
                       ),
                       onSubmitted: (value) {
                         print(value);
-                        // Implement search functionality here
                       },
                     ),
                   ),
                   const SizedBox(width: 8.0),
                   FloatingActionButton(
                     onPressed: () {
-                      // Implement search functionality here
+                      final String value = _controller.text;
+                      LoggingUtil.logInfor('Button clicked with value: $value');
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Submitted value: $value'),
+                        ),
+                      );
                     },
                     child: const Icon(Icons.search),
                   ),
@@ -89,15 +114,15 @@ class _SearchScreenState extends State<SearchScreen> {
             Expanded(
               child: Column(
                 children: [
-                  // Search Results with Tags
-                  _buildSearchResultsRow(
-                    title: 'Search result with tags',
-                    items: searchResultsWithTags,
-                  ),
-                  // Search Results with Albums
-                  _buildSearchResultsRow(
-                    title: 'Search with Album',
-                    items: searchResultsWithAlbums,
+                  // // Search Results with Tags
+                  // _buildSearchResultsAlbum(
+                  //   title: 'Search result with albums',
+                  //   items: _albumViewModel.albums,
+                  // ),
+                  // Search Results with Medias
+                  _buildSearchResultsMedia(
+                    title: 'Search with media files',
+                    medias: _galleryViewModel.medias,
                   ),
                 ],
               ),
@@ -108,31 +133,40 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildSearchResultsRow(
-      {required String title, required List<String> items}) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+  Widget _buildSearchResultsMedia(
+      {required String title, required List<Media> medias}) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
             child: Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(items[index]),
-                );
-              },
-            ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: medias.length,
+            itemBuilder: (context, index) {
+              final media = medias[index];
+              return ListTile(
+                title: Text(media.name),
+                subtitle: Text(media.path),
+                leading: Image.file(File(media.path)),
+                onTap: () {
+                  // Navigate to the detail screen
+                },
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
