@@ -7,8 +7,11 @@ import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/presentation/screens/add_album_screen.dart';
 import 'package:photoapp/presentation/viewmodel/detail_screen_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
+import 'package:photoapp/utils/logger.dart';
+import 'package:photoapp/utils/wallpaper.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_player/video_player.dart';
 
 class DetailScreen extends StatefulWidget {
   final Media media;
@@ -55,6 +58,24 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
+  Widget _buttonPlay() {
+    return FloatingActionButton(
+      onPressed: () {
+        if (detailViewModel.controller!.value.isPlaying) {
+          detailViewModel.pauseVideo();
+        } else {
+          detailViewModel.playVideo();
+        }
+      },
+      child: Icon(
+        detailViewModel.controller != null &&
+                detailViewModel.controller!.value.isPlaying
+            ? Icons.pause
+            : Icons.play_arrow,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -90,33 +111,84 @@ class _DetailScreenState extends State<DetailScreen> {
           detailViewModel.currentMedia = galleryViewModel.medias[index];
         },
         itemBuilder: (context, index) {
-          return FutureBuilder<AssetEntity?>(
-            future: AssetMapper.transformMediaToAssetEntity(
-                galleryViewModel.medias[index]),
-            builder: (BuildContext context,
-                AsyncSnapshot<AssetEntity?> assetSnapshot) {
-              if (assetSnapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              } else if (assetSnapshot.hasError) {
-                return Text('Error: ${assetSnapshot.error}');
-              } else {
-                return SizedBox(
-                  width: double.infinity,
-                  height: double.infinity,
-                  child: PhotoView(
-                    imageProvider: AssetEntityImageProvider(
-                      assetSnapshot.data!,
-                      isOriginal: true,
+          LoggingUtil.logInfor(
+              'Media path $index : ${galleryViewModel.medias[index].toString()}');
+          Widget pageWidget;
+
+          if (galleryViewModel.medias[index].type == "video") {
+            pageWidget = FutureBuilder(
+              future: detailViewModel
+                  .initVideoPlayer(galleryViewModel.medias[index]),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapshot.hasError) {
+                  return const Center(
+                    child: Text('Failed to load video'),
+                  );
+                } else {
+                  return Consumer<DetailScreenViewModel>(
+                    builder: (context, detailViewModel, child) {
+                      return AspectRatio(
+                        aspectRatio:
+                            detailViewModel.controller!.value.aspectRatio,
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: SizedBox(
+                            width: detailViewModel.controller!.value.size.width,
+                            height:
+                                detailViewModel.controller!.value.size.height,
+                            child: VideoPlayer(detailViewModel.controller!),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+              },
+            );
+          } else {
+            pageWidget = FutureBuilder<AssetEntity?>(
+              future: AssetMapper.transformMediaToAssetEntity(
+                  galleryViewModel.medias[index]),
+              builder: (BuildContext context,
+                  AsyncSnapshot<AssetEntity?> assetSnapshot) {
+                if (assetSnapshot.connectionState == ConnectionState.waiting) {
+                  return const CircularProgressIndicator();
+                } else if (assetSnapshot.hasError) {
+                  return Text('Error: ${assetSnapshot.error}');
+                } else {
+                  return SizedBox(
+                    width: double.infinity,
+                    height: double.infinity,
+                    child: PhotoView(
+                      imageProvider: AssetEntityImageProvider(
+                        assetSnapshot.data!,
+                        isOriginal: true,
+                      ),
                     ),
-                  ),
-                );
-              }
-            },
+                  );
+                }
+              },
+            );
+          }
+
+          // Wrap the pageWidget with PageStorageKey
+          return Container(
+            key: PageStorageKey(index.toString()),
+            child: pageWidget,
           );
         },
       ),
-      
-      
+      floatingActionButton: Consumer<DetailScreenViewModel>(
+        builder: (context, detailViewModel, child) {
+          return detailViewModel.currentMedia.type == "video"
+              ? _buttonPlay()
+              : Container();
+        },
+      ),
       bottomNavigationBar: Consumer<DetailScreenViewModel>(
           builder: (context, detailViewModel, child) {
         return BottomAppBar(
@@ -139,51 +211,69 @@ class _DetailScreenState extends State<DetailScreen> {
                   buildActionButton(Icons.favorite, 'Love',
                       onPressed: () async {
                     await detailViewModel.toggleFavorite();
-                    print(detailViewModel.currentMedia.name);
                   }),
                   buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
-                  buildActionButton(Icons.crop, 'Crop', onPressed: () {
+                  buildActionButton(Icons.tag, 'Hash Tag', onPressed: () {
                     // Navigate to crop screen
                   }),
-                  buildActionButton(Icons.filter_vintage_outlined, 'Filter',
-                      onPressed: () {
-                    // Navigate to filter screen
+                  buildActionButton(Icons.more_vert, 'More',
+                      onPressed: () async {
                     showMenu(
                       context: context,
-                      position: const RelativeRect.fromLTRB(
-                          100, 600, 8, 0), // Vị trí của menu popup
+                      position: const RelativeRect.fromLTRB(100, 550, 8, 0),
                       items: [
                         const PopupMenuItem(
-                          child: Text('Thêm album'),
                           value: 1,
+                          child: Text('Add Album'),
                         ),
                         const PopupMenuItem(
-                          child: Text('Option 2'),
                           value: 2,
+                          child: Text('Use as Wallpaper Home Screen'),
+                        ),
+                        const PopupMenuItem(
+                          value: 3,
+                          child: Text('Use as Wallpaper Lock Screen'),
+                        ),
+                        const PopupMenuItem(
+                          value: 4,
+                          child: Text('Use as Wallpaper Both Screen'),
                         ),
                       ],
-                      // Xử lý sự kiện khi một mục trong menu được chọn
-                      // Ở đây chúng ta in ra giá trị của mục được chọn
-                      // Bạn có thể thay đổi hành động này theo nhu cầu của mình
-                    ).then((value) {
+                    ).then((value) async {
                       if (value == 1) {
-                        Navigator.push(
+                        List<Media> listMedia = [detailViewModel.currentMedia];
+                        final result = Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => AddAlbumScreen()),
+                              builder: (context) =>
+                                  AddAlbumScreen(selectedMedia: listMedia)),
                         );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Add to album successfully!'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      } else if (value == 2) {
+                        String result =
+                            await WallpaperHandler.setWallPaperHomeScreen(
+                                detailViewModel.currentMedia.path);
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(result)));
+                      } else if (value == 3) {
+                        String result =
+                            await WallpaperHandler.setWallPaperLockScreen(
+                                detailViewModel.currentMedia.path);
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(result)));
+                      } else if (value == 4) {
+                        String result =
+                            await WallpaperHandler.setWallPaperBothScreen(
+                                detailViewModel.currentMedia.path);
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(result)));
                       }
                     });
-                  }),
-                  buildActionButton(Icons.more_vert, 'Move',
-                      onPressed: () async {
-                    // Handle more actions
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddAlbumScreen(),
-                      ),
-                    );
                   }),
                 ],
               ),
@@ -191,7 +281,12 @@ class _DetailScreenState extends State<DetailScreen> {
           ),
         );
       }),
-    
     );
+  }
+
+  @override
+  void dispose() {
+    detailViewModel.controller?.dispose();
+    super.dispose();
   }
 }

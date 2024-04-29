@@ -6,6 +6,8 @@ class PermissionHandler {
     if (!status.isGranted) {
       await [
         Permission.photos,
+        Permission.videos,
+        Permission.mediaLibrary,
         Permission.storage,
         Permission.camera,
       ].request();

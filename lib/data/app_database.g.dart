@@ -210,6 +210,16 @@ class _$AlbumDao extends AlbumDao {
   }
 
   @override
+  Future<void> deleteMediaFromAlbum(
+    String albumTitle,
+    String mediaId,
+  ) async {
+    await _queryAdapter.queryNoReturn(
+        'DELETE FROM media_album   WHERE mediaId = ?2   AND albumId = (SELECT id FROM album WHERE title = ?1)',
+        arguments: [albumTitle, mediaId]);
+  }
+
+  @override
   Future<List<AlbumEntity>> findAllAlbumEntity() async {
     return _queryAdapter.queryList('SELECT * FROM album',
         mapper: (Map<String, Object?> row) => AlbumEntity(

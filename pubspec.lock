@@ -339,6 +339,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_wallpaper_manager:
+    dependency: "direct main"
+    description:
+      name: flutter_wallpaper_manager
+      sha256: "369f63c6fdb4515477ced545e39581fb3d56afcdde8bcb9ba8a58d42c2dd1c9c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.4"
   flutter_web_plugins:
     dependency: transitive
     description: flutter

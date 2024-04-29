@@ -9,26 +9,8 @@ import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:photoapp/utils/permission.dart';
 
-class AlbumViewModel extends ChangeNotifier {
+class FavoriteViewModel extends ChangeNotifier {
   late final AlbumRepository albumRepository;
-  Map<String, Album> albumMap = {};
-  late Album _favoriteAlbum;
-  late Album _recycleBinAlbum;
-
-  Album get favoriteAlbum => _favoriteAlbum;
-
-  set favoriteAlbum(Album value) {
-    _favoriteAlbum = value;
-    notifyListeners();
-  }
-
-  Album get recycleBinAlbum => _recycleBinAlbum;
-
-  set recycleBinAlbum(Album value) {
-    _recycleBinAlbum = value;
-    notifyListeners();
-  }
-
   List<Album> _albums = [];
 
   List<Album> get albums => _albums;
@@ -38,8 +20,8 @@ class AlbumViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  AlbumViewModel() {
-    LoggingUtil.logInfor('Initializing AlbumViewModel...');
+  FavoriteViewModel() {
+    LoggingUtil.logInfor('Initializing FavoriteViewModel...');
     _initialize();
   }
 
@@ -48,10 +30,7 @@ class AlbumViewModel extends ChangeNotifier {
     AlbumDao albumDao = appDatabase.albumDao;
     MediaDao mediaDao = appDatabase.mediaDao;
     TagDao tagDao = appDatabase.tagDao;
-    albumRepository = AlbumLocalRepository(
-        albumDao: albumDao, mediaDao: mediaDao, tagDao: tagDao);
-    // Load default albums
-    albumMap = await albumRepository.persistAlbumDefault();
+    albumRepository = AlbumLocalRepository( albumDao: albumDao, mediaDao: mediaDao, tagDao: tagDao);
     await loadAlbums();
   }
 
@@ -63,7 +42,6 @@ class AlbumViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshAlbum() async {
-    albumMap = await albumRepository.persistAlbumDefault();
     await loadAlbums();
     notifyListeners();
   }
@@ -73,17 +51,5 @@ class AlbumViewModel extends ChangeNotifier {
       await albumRepository.addMediaToAlbum(title, media);
     }
     await loadAlbums();
-  }
-
-  Future<void> loadFavoriteAlbum() async {
-    Album? album = await albumRepository.getAlbumByName("Favorite");
-    album ??= await albumRepository.createFavoriteAlbum();
-    favoriteAlbum = album;
-  }
-
-  Future<void> loadRecycleBinAlbum() async {
-    Album? album = await albumRepository.getAlbumByName("Recycle Bin");
-    album ??= await albumRepository.createRecycleBinAlbum();
-    recycleBinAlbum = album;
   }
 }

@@ -6,8 +6,15 @@ import 'package:photoapp/utils/permission.dart';
 
 class GalleryViewModel extends ChangeNotifier {
   late final MediaRepository mediaRepository;
-
+  List<Media> _selectedMedias = [];
   List<Media> _medias = [];
+
+  List<Media> get selectedMedias => _selectedMedias;
+
+  set selectedMedias(List<Media> value) {
+    _selectedMedias = value;
+    notifyListeners();
+  }
 
   List<Media> get medias => _medias;
 

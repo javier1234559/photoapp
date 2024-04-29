@@ -49,6 +49,7 @@ dependencies:
   photo_view: ^0.15.0
   logger: ^2.2.0
   shared_preferences: ^2.2.3
+  flutter_wallpaper_manager: ^0.0.4
 
 dev_dependencies:
   floor_generator: ^1.4.2
@@ -75,7 +76,8 @@ flutter:
 
   assets:
     - assets/images/logo.png
-    - assets/video/video.mp4
+    - assets/images/favorite_logo.png
+    - assets/images/recyclebin_logo.png
 
 flutter_launcher_icons:
   android: 'launcher_icon'

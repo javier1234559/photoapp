@@ -1,91 +1,144 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
+import 'package:photo_manager/photo_manager.dart';
+import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photoapp/data/mapper/asset_mapper.dart';
+import 'package:photoapp/domain/model/album.dart';
+import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
+
+import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
+import 'package:photoapp/utils/constants.dart';
+import 'package:provider/provider.dart';
 
 class AddAlbumScreen extends StatefulWidget {
-  const AddAlbumScreen({super.key});
+  List<Media> selectedMedia;
+  AddAlbumScreen({super.key, required this.selectedMedia});
 
   @override
   State<AddAlbumScreen> createState() => _AddAlbumScreenState();
 }
 
 class _AddAlbumScreenState extends State<AddAlbumScreen> {
-  List<File> _images = [];
-  Future<void> Addnewalbum() async {
-    String? newItem = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return MyDialog();
+  late AlbumViewModel albumViewModel;
+  late List<Media> selectedMedia;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedMedia = widget.selectedMedia;
+    albumViewModel = Provider.of<AlbumViewModel>(context, listen: false);
+  }
+
+  Widget _buildThumbnail(Album album) {
+    return FutureBuilder<Widget>(
+      future: _generateThumbnail(album),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done &&
+            snapshot.hasData) {
+          return snapshot.data!;
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
       },
     );
-    if (newItem != null) {
-      print('Added item: $newItem');
-      // Do something with the new item
-    } else {
-      print('No item added');
+  }
+
+  Future<Widget> _generateThumbnail(Album album) async {
+    if (album.medias.isEmpty) {
+      if (album.title == 'Favorite') {
+        return Image.asset(favoriteLogoPath);
+      } else if (album.title == 'Recycle Bin') {
+        return Image.asset(recycleBinLogoPath);
+      }
     }
+    final asset =
+        await AssetMapper.transformMediaToAssetEntity(album.medias.last);
+    return AssetEntityImage(
+      asset!,
+      isOriginal: false,
+      fit: BoxFit.cover,
+      thumbnailSize: const ThumbnailSize.square(200),
+      thumbnailFormat: ThumbnailFormat.jpeg,
+    );
+  }
+
+  Future<void> _addToNewAlbum() async {
+    String? nameAlbum = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return const AddAlbumDialog();
+      },
+    );
+    if (nameAlbum != null) {
+      await albumViewModel.addToAlbum(nameAlbum, selectedMedia);
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> _addToExistAlbum(String nameAlbum) async {
+    await albumViewModel.addToAlbum(nameAlbum, selectedMedia);
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final initViewModel = Provider.of<InitViewModel>(context);
+
     return SafeArea(
         child: Scaffold(
       appBar: AppBar(
-        title: const Text("hello"),
+        title: const Text("Choose Album to add media to"),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Center(
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4, // Number of columns in the grid
-              crossAxisSpacing: 4.0, // Spacing between columns
-              mainAxisSpacing: 4.0, // Spacing between rows
-            ),
-            itemCount: 20,
-            itemBuilder: (BuildContext context, int index) {
-              if (index == 0) {
+        padding: const EdgeInsets.only(top: 10),
+        child: Consumer<AlbumViewModel>(
+          builder: (context, viewModel, child) {
+            if (viewModel.albums.isEmpty) {
+              return const Center(child: Text('No albums found'));
+            }
+            return GridView.builder(
+              itemCount: viewModel.albums.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: initViewModel.crossAxisCount,
+                crossAxisSpacing: initViewModel.crossAxisSpacing,
+                mainAxisSpacing: initViewModel.mainAxisSpacing,
+              ),
+              itemBuilder: (context, index) {
                 return GestureDetector(
-                  onTap: () async {
-                    String? newItem = await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return MyDialog();
-                      },
-                    );
-                    // Handle the result of the dialog if needed
+                  onTap: () {
+                    setState(() {
+                      String title = viewModel.albums[index].title;
+                      _addToExistAlbum(title);
+                    });
                   },
-                  child: Container(
-                    color: Colors.white, // Set container color to white
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.add,
-                          color: Colors.red, // Set icon color to red
-                        ),
-                        Text('Item $index'), // Add text below the icon
-                      ],
-                    ),
-                  ),
-                );
-              } else {
-                return Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text("$index"),
-                      Text('Item $index'),
-                      // Display item index
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Expanded(
+                        child: AspectRatio(
+                          aspectRatio: 1,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(5),
+                            child: _buildThumbnail(viewModel.albums[index]),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        viewModel.albums[index].title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ],
                   ),
                 );
-              }
-            },
-          ),
+              },
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: Addnewalbum,
+        onPressed: _addToNewAlbum,
         tooltip: 'Pick Image',
         child: const Icon(Icons.add),
       ),
@@ -93,28 +146,27 @@ class _AddAlbumScreenState extends State<AddAlbumScreen> {
   }
 }
 
-class MyDialog extends StatefulWidget {
-  const MyDialog({super.key});
+class AddAlbumDialog extends StatefulWidget {
+  const AddAlbumDialog({super.key});
 
   @override
-  _MyDialogState createState() => _MyDialogState();
+  State<AddAlbumDialog> createState() => _AddAlbumDialogState();
 }
 
-class _MyDialogState extends State<MyDialog> {
+class _AddAlbumDialogState extends State<AddAlbumDialog> {
   final TextEditingController _textFieldController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Thêm album'),
+      title: const Text('Add album'),
       content: TextField(
         controller: _textFieldController,
-        decoration: const InputDecoration(hintText: "Têm album"),
       ),
       actions: <Widget>[
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Close the dialog
+            Navigator.of(context).pop();
           },
           child: const Text('Cancel'),
         ),
@@ -122,11 +174,10 @@ class _MyDialogState extends State<MyDialog> {
           onPressed: () {
             String newItem = _textFieldController.text;
             if (newItem.isNotEmpty) {
-              Navigator.of(context)
-                  .pop(newItem); // Pass the new item back to the caller
+              Navigator.of(context).pop(newItem);
             }
           },
-          child: Text('Add'),
+          child: const Text('Add'),
         ),
       ],
     );

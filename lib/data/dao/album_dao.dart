@@ -29,6 +29,13 @@ abstract class AlbumDao {
 ''')
   Future<void> addMediaToExistAlbum(String title, String mediaId);
 
+  @Query('''
+  DELETE FROM media_album
+  WHERE mediaId = :mediaId
+  AND albumId = (SELECT id FROM album WHERE title = :albumTitle)
+''')
+  Future<void> deleteMediaFromAlbum(String albumTitle, String mediaId);
+
   @Query('SELECT * FROM album')
   Future<List<AlbumEntity>> findAllAlbumEntity();
 

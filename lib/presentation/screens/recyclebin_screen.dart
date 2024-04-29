@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
+import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
-import 'package:photoapp/presentation/screens/add_album_screen.dart';
-import 'package:photoapp/presentation/screens/selected_screen.dart';
-import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
-import 'package:photoapp/utils/constants.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 import 'detail_screen.dart';
 
-class GalleryScreen extends StatefulWidget {
-  static String appBarName = "Gallery";
-  static String routeName = "/gallery";
+class RecycleBinScreen extends StatefulWidget {
+  Album album;
 
-  const GalleryScreen({super.key});
+  RecycleBinScreen({super.key, required this.album});
 
   @override
-  State<StatefulWidget> createState() => _GalleryScreenState();
+  State<StatefulWidget> createState() => _RecycleBinScreenState();
 }
 
-class _GalleryScreenState extends State<GalleryScreen> {
+class _RecycleBinScreenState extends State<RecycleBinScreen> {
+  late Album album;
+
+  @override
+  void initState() {
+    super.initState();
+    album = widget.album;
+  }
+
   void _openDetailScreen(Media media) {
     Navigator.push(
       context,
@@ -105,18 +109,28 @@ class _GalleryScreenState extends State<GalleryScreen> {
   Widget build(BuildContext context) {
     final initViewModel = Provider.of<InitViewModel>(context);
 
-    return Consumer<GalleryViewModel>(
-      builder: (context, viewModel, child) {
-        if (viewModel.medias.isEmpty) {
-          return RefreshIndicator(
-              onRefresh: viewModel.refreshMedia,
-              child: const Center(child: Text('No medias found')));
-        }
+    if (album.medias.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text("Recycle Bin"),
+        ),
+        body:
+            const Center(child: Text('There are no any deleted media found ')),
+      );
+    }
 
-        return RefreshIndicator(
-          onRefresh: viewModel.refreshMedia,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Recycle Bin"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            print('Refresh album');
+          },
           child: GridView.builder(
-            itemCount: viewModel.medias.length,
+            itemCount: album.medias.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: initViewModel.crossAxisCount,
               crossAxisSpacing: initViewModel.crossAxisSpacing,
@@ -124,53 +138,22 @@ class _GalleryScreenState extends State<GalleryScreen> {
             ),
             itemBuilder: (context, index) {
               return GestureDetector(
-                onTap: () {
-                  _openDetailScreen(viewModel.medias[index]);
-                },
-                onLongPress: () async {
-                  // Navigate to the new screen and wait for it to return a result
-                  final selectedMedia = await Navigator.push<List<Media>>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SelectMediaScreen(
-                        firstMediaSelected: viewModel.medias[index],
-                      ),
+                  onTap: () {
+                    _openDetailScreen(album.medias[index]);
+                  },
+                  child: SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(5),
+                      child: _buildThumbnail(album.medias[index]),
                     ),
+                  ) //
                   );
-
-                  // Do something with the returned selected media
-                  print(selectedMedia);
-                  List<Media>? listMedia = selectedMedia;
-                  if (listMedia != null && listMedia.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>
-                              AddAlbumScreen(selectedMedia: listMedia)),
-                    );
-                  }
-                },
-                child: Stack(
-                  children: <Widget>[
-                    SizedBox(
-                      width: 150,
-                      height: 150,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
-                        child: _buildThumbnail(viewModel.medias[index]),
-                      ),
-                    ),
-                    if (viewModel.selectedMedias
-                        .contains(index)) // if the item is selected
-                      const Icon(Icons.check_circle,
-                          color: kPrimaryColor), // show selection icon
-                  ],
-                ),
-              );
             },
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

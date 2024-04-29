@@ -9,6 +9,7 @@ import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/data/mapper/media_mapper.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/utils/constants.dart';
 import 'package:photoapp/utils/logger.dart';
 
 abstract class AlbumRepository {
@@ -22,9 +23,19 @@ abstract class AlbumRepository {
 
   Future<void> addMediaToAlbum(String title, Media media);
 
+  Future<void> removeMediaFromAlbum(String title, Media media);
+
   Future<void> deleteAlbum(Album album);
 
   Future<Map<String, Album>> persistAlbumDefault();
+
+  Future<Album> createFavoriteAlbum({String title, String path});
+
+  Future<Album> createRecycleBinAlbum({String title, String path});
+
+  Future<void> moveToRecycleBin(Media media);
+
+  Future<void> restoreMedia(Media media);
 }
 
 class AlbumLocalRepository extends AlbumRepository {
@@ -89,11 +100,20 @@ class AlbumLocalRepository extends AlbumRepository {
           isFavorite: media.isFavorite,
         ));
       }
+
+      //get all media in album
+      List<MediaEntity> mediaEntities =
+          await mediaDao.findAllMediaByTitleAlbum(title);
+
+      // check exist media in album if already exist return
+      for (var mediaEntity in mediaEntities) {
+        if (mediaEntity.id == media.id) {
+          return AlbumMapper.transformToModel(albumEntity);
+        }
+      }
+
       // insert connection
       await albumDao.addMediaToExistAlbum(title, media.id);
-      
-      //get all media in album
-      List<MediaEntity> mediaEntities = await mediaDao.findAllMediaByTitleAlbum(title);
 
       //update album
       albumEntity.numberOfItems = mediaEntities.length;
@@ -160,12 +180,14 @@ class AlbumLocalRepository extends AlbumRepository {
 
   @override
   Future<Map<String, Album>> persistAlbumDefault() async {
-    final List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(onlyAll: true);
+    final List<AssetPathEntity> albums =
+        await PhotoManager.getAssetPathList(onlyAll: true);
     Map<String, Album> albumMaps = {};
 
     for (var album in albums) {
       const int assetCount = 50;
-      final List<AssetEntity> assets = await album.getAssetListRange(start: 0, end: assetCount);
+      final List<AssetEntity> assets =
+          await album.getAssetListRange(start: 0, end: assetCount);
 
       for (var asset in assets) {
         String path = await asset.file.then((value) => value?.path ?? '');
@@ -179,7 +201,6 @@ class AlbumLocalRepository extends AlbumRepository {
         if (album != null) {
           albumMaps[albumCategory] = album;
         }
-
       }
     }
 
@@ -200,24 +221,61 @@ class AlbumLocalRepository extends AlbumRepository {
     }
   }
 
-  // Future<AlbumEntity> _createAndSaveAlbumEntity(
-  //     AssetPathEntity album, List<AssetEntity> assets) async {
-  //   AlbumEntity albumEntity = AlbumEntity(
-  //     title: album.name,
-  //     thumbnailPath: await assets.last.file.then((value) => value?.path ?? ''),
-  //     path: "/${album.name}",
-  //     numberOfItems: assets.length,
-  //     albumType: 'default',
-  //   );
-  //   LoggingUtil.logDebug(albumEntity.toString());
+  @override
+  Future<Album> createFavoriteAlbum(
+      {String title = "Favorite", String path = favoriteLogoPath}) async {
+    AlbumEntity albumEntity = AlbumEntity(
+      title: title,
+      thumbnailPath: path,
+      path: path,
+      numberOfItems: 0,
+      albumType: title,
+    );
+    await albumDao.insertAlbum(albumEntity);
+    AlbumEntity? insertedAlbum = await albumDao.findAlbumByTitle(title);
+    if (insertedAlbum == null) {
+      throw Exception('Failed to create album');
+    }
+    return AlbumMapper.transformToModel(insertedAlbum);
+  }
 
-  //   Album newAlbum = await AlbumMapper.transformToModel(albumEntity);
-  //   await createAlbum(newAlbum);
-  //   List<AlbumEntity> list = await albumDao.getAllAlbum(0, 20);
-  //   LoggingUtil.logDebug(list[0].toString());
+  @override
+  Future<Album> createRecycleBinAlbum(
+      {String title = "Recycle Bin", String path = recycleBinLogoPath}) async {
+    AlbumEntity albumEntity = AlbumEntity(
+      title: title,
+      thumbnailPath: path,
+      path: path,
+      numberOfItems: 0,
+      albumType: title,
+    );
+    await albumDao.insertAlbum(albumEntity);
+    AlbumEntity? insertedAlbum = await albumDao.findAlbumByTitle(title);
+    if (insertedAlbum == null) {
+      throw Exception('Failed to create album');
+    }
+    return AlbumMapper.transformToModel(albumEntity);
+  }
 
-  //   return albumEntity;
-  // }
+  @override
+  Future<void> removeMediaFromAlbum(String title, Media media) async {
+    // Get the album
+    final albums = await getAlbumByName(title);
+    if (albums == null) {
+      return;
+    }
+    await albumDao.deleteMediaFromAlbum(title, media.id);
+  }
 
-  
+  @override
+  Future<void> moveToRecycleBin(Media media) {
+    // TODO: implement moveToRecycleBin
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> restoreMedia(Media media) {
+    // TODO: implement restoreMedia
+    throw UnimplementedError();
+  }
 }

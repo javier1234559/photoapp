@@ -9,10 +9,10 @@ import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/utils/logger.dart';
 
 class AlbumMapper {
-  static late final TagDao tagDao;
-  static late final MediaDao mediaDao;
+  static late TagDao tagDao;
+  static late MediaDao mediaDao;
 
-  static void initialize(final TagDao tagDao, final MediaDao mediaDao) {
+  static void initialize(TagDao tagDao, MediaDao mediaDao) {
     AlbumMapper.tagDao = tagDao;
     AlbumMapper.mediaDao = mediaDao;
   }
