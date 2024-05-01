@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:photoapp/presentation/screens/album_screen.dart';
+import 'package:photoapp/presentation/screens/list_album_screen.dart';
 import 'package:photoapp/presentation/screens/gallery_screen.dart';
 import 'package:photoapp/presentation/screens/init_screen.dart';
 import 'package:photoapp/presentation/screens/search_screen.dart';
 import 'package:photoapp/presentation/screens/setting_screen.dart';
 import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
+import 'package:photoapp/presentation/viewmodel/detail_album_view_model.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
 import 'package:photoapp/utils/theme.dart';
@@ -13,7 +15,7 @@ import 'package:provider/provider.dart';
 final Map<String, WidgetBuilder> routes = {
   InitScreen.routeName: (context) => const InitScreen(),
   GalleryScreen.routeName: (context) => const GalleryScreen(),
-  AlbumScreen.routeName: (context) => const AlbumScreen(),
+  ListAlbumScreen.routeName: (context) => const ListAlbumScreen(),
   SearchScreen.routeName: (context) => const SearchScreen(),
   SettingsScreen.routeName: (context) => const SettingsScreen(),
 };
@@ -27,6 +29,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => AlbumViewModel(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => GalleryAlbumViewModel(),
         ),
         ChangeNotifierProvider(
           create: (context) => InitViewModel(),

@@ -3,11 +3,11 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/screens/detail_album_screen.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
-
-import 'detail_screen.dart';
 
 class FavoriteScreen extends StatefulWidget {
   Album album;
@@ -19,19 +19,21 @@ class FavoriteScreen extends StatefulWidget {
 }
 
 class _FavoriteScreenState extends State<FavoriteScreen> {
-  late Album album;
+  late GalleryAlbumViewModel _galleryAlbumviewModel;
 
   @override
   void initState() {
     super.initState();
-    album = widget.album;
+    _galleryAlbumviewModel =
+        Provider.of<GalleryAlbumViewModel>(context, listen: false);
+    _galleryAlbumviewModel.currentAlbum = widget.album;
   }
 
   void _openDetailScreen(Media media) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailScreen(media: media),
+        builder: (context) => DetailAlbumScreen(media: media),
       ),
     );
   }
@@ -109,10 +111,15 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   Widget build(BuildContext context) {
     final initViewModel = Provider.of<InitViewModel>(context);
 
-    if (album.medias.isEmpty) {
-      return const Center(
-          child: Text(
-              'There are no any favorited media found . Let\'s add some!'));
+    if (_galleryAlbumviewModel.currentAlbum.medias.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Favorite'),
+        ),
+        body: const Center(
+            child: Text(
+                'There are no any favorited media found . Let\'s add some!')),
+      );
     }
 
     return Scaffold(
@@ -120,13 +127,13 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         title: const Text('Favorite'),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.all(8.0),
         child: RefreshIndicator(
           onRefresh: () async {
-            print('Refresh album');
+            print('Refresh _galleryAlbumviewModel.currentAlbum');
           },
           child: GridView.builder(
-            itemCount: album.medias.length,
+            itemCount: _galleryAlbumviewModel.currentAlbum.medias.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: initViewModel.crossAxisCount,
               crossAxisSpacing: initViewModel.crossAxisSpacing,
@@ -135,14 +142,14 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             itemBuilder: (context, index) {
               return GestureDetector(
                   onTap: () {
-                    _openDetailScreen(album.medias[index]);
+                    _openDetailScreen(_galleryAlbumviewModel.currentAlbum.medias[index]);
                   },
                   child: SizedBox(
                     width: 150,
                     height: 150,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
-                      child: _buildThumbnail(album.medias[index]),
+                      child: _buildThumbnail(_galleryAlbumviewModel.currentAlbum.medias[index]),
                     ),
                   ) //
                   );

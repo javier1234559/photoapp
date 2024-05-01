@@ -11,7 +11,7 @@ import 'package:photoapp/domain/model/tag.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:video_player/video_player.dart';
 
-class DetailScreenViewModel extends ChangeNotifier {
+class DetailAlbumViewModel extends ChangeNotifier {
   Media _currentMedia;
   VideoPlayerController? _controller;
   late final MediaLocalRepository mediaRepository;
@@ -38,8 +38,8 @@ class DetailScreenViewModel extends ChangeNotifier {
 
   VideoPlayerController? get controller => _controller;
 
-  DetailScreenViewModel(this._currentMedia) {
-    LoggingUtil.logDebug("DetailScreenViewModel created: $currentMedia.path");
+  DetailAlbumViewModel(this._currentMedia) {
+    LoggingUtil.logDebug("DetailAlbumViewModel created: $currentMedia.path");
     _initialDatabase();
 
     if (currentMedia.type == 'video') {
@@ -55,7 +55,7 @@ class DetailScreenViewModel extends ChangeNotifier {
         _controller?.pause();
       }
       _controller?.dispose();
-       _currentMedia = media;
+      _currentMedia = media;
       _controller = VideoPlayerController.file(File(currentMedia.path));
       await _controller
           ?.initialize()
@@ -127,8 +127,7 @@ class DetailScreenViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    LoggingUtil.logError(
-        "DetailScreenViewModel disposed: ${currentMedia.path}");
+    LoggingUtil.logError("DetailAlbumViewModel disposed: ${currentMedia.path}");
     _controller?.dispose();
     super.dispose();
   }

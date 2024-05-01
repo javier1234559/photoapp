@@ -2,8 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:photoapp/domain/model/media.dart';
-import 'package:photoapp/presentation/screens/gallery_screen.dart';
-import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
 

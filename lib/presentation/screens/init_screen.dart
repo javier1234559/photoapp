@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:photoapp/presentation/screens/album_screen.dart';
+import 'package:photoapp/presentation/screens/list_album_screen.dart';
 import 'package:photoapp/presentation/screens/gallery_screen.dart';
 import 'package:photoapp/presentation/screens/search_screen.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
@@ -18,13 +18,13 @@ class _InitScreenState extends State<InitScreen> {
 
   final pages = [
     const GalleryScreen(),
-    const AlbumScreen(),
+    const ListAlbumScreen(),
     const SearchScreen(),
   ];
 
   final appBarTitles = [
     GalleryScreen.appBarName,
-    AlbumScreen.appBarName,
+    ListAlbumScreen.appBarName,
     SearchScreen.appBarName
   ];
 

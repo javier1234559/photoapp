@@ -116,13 +116,20 @@ class _SelectMediaScreenState extends State<SelectMediaScreen> {
             },
           ),
           actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.add),
-              onPressed: () {
+            GestureDetector(
+              onTap: () {
                 Navigator.pop(context, selectedMedias);
               },
+              child: const Row(
+                children: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.add),
+                    onPressed: null, // Disable the button's own onPressed
+                  ),
+                  Text('Add To Album'),
+                ],
+              ),
             ),
-            const Text('Add To Album'),
           ],
         ),
         body: Consumer<GalleryViewModel>(
@@ -157,10 +164,8 @@ class _SelectMediaScreenState extends State<SelectMediaScreen> {
                             child: _buildThumbnail(viewModel.medias[index]),
                           ),
                         ),
-                        if (selectedMedias.contains(
-                            viewModel.medias[index])) // if the item is selected
-                          const Icon(Icons.check_circle,
-                              color: Colors.green), // show selection icon
+                        if (selectedMedias.contains(viewModel.medias[index]))
+                          const Icon(Icons.check_circle, color: Colors.green),
                       ],
                     ),
                   );

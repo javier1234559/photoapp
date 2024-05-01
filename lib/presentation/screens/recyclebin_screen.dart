@@ -3,11 +3,11 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
+import 'package:photoapp/presentation/screens/detail_album_screen.dart';
+import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
-
-import 'detail_screen.dart';
 
 class RecycleBinScreen extends StatefulWidget {
   Album album;
@@ -19,19 +19,21 @@ class RecycleBinScreen extends StatefulWidget {
 }
 
 class _RecycleBinScreenState extends State<RecycleBinScreen> {
-  late Album album;
+  late GalleryAlbumViewModel _galleryAlbumviewModel;
 
   @override
   void initState() {
     super.initState();
-    album = widget.album;
+    _galleryAlbumviewModel =
+        Provider.of<GalleryAlbumViewModel>(context, listen: false);
+    _galleryAlbumviewModel.currentAlbum = widget.album;
   }
 
   void _openDetailScreen(Media media) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailScreen(media: media),
+        builder: (context) => DetailAlbumScreen(media: media),
       ),
     );
   }
@@ -109,7 +111,7 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
   Widget build(BuildContext context) {
     final initViewModel = Provider.of<InitViewModel>(context);
 
-    if (album.medias.isEmpty) {
+    if (_galleryAlbumviewModel.currentAlbum.medias.isEmpty) {
       return Scaffold(
         appBar: AppBar(
           title: const Text("Recycle Bin"),
@@ -124,13 +126,13 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
         title: const Text("Recycle Bin"),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.all(8.0),
         child: RefreshIndicator(
           onRefresh: () async {
-            print('Refresh album');
+            print('Refresh _galleryAlbumviewModel.currentAlbum');
           },
           child: GridView.builder(
-            itemCount: album.medias.length,
+            itemCount: _galleryAlbumviewModel.currentAlbum.medias.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: initViewModel.crossAxisCount,
               crossAxisSpacing: initViewModel.crossAxisSpacing,
@@ -139,14 +141,16 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
             itemBuilder: (context, index) {
               return GestureDetector(
                   onTap: () {
-                    _openDetailScreen(album.medias[index]);
+                    _openDetailScreen(
+                        _galleryAlbumviewModel.currentAlbum.medias[index]);
                   },
                   child: SizedBox(
                     width: 150,
                     height: 150,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
-                      child: _buildThumbnail(album.medias[index]),
+                      child: _buildThumbnail(
+                          _galleryAlbumviewModel.currentAlbum.medias[index]),
                     ),
                   ) //
                   );

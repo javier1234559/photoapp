@@ -112,45 +112,37 @@ class _DetailScreenState extends State<DetailScreen> {
           detailViewModel.currentMedia = galleryViewModel.medias[index];
         },
         itemBuilder: (context, index) {
+          // detailViewModel.currentMedia = galleryViewModel.medias[index];
           LoggingUtil.logInfor(
               'Media path $index : ${galleryViewModel.medias[index].toString()}');
-          Widget pageWidget;
+          Widget? pageWidget;
 
           if (galleryViewModel.medias[index].type == "video") {
             pageWidget = FutureBuilder(
               future: detailViewModel
                   .initVideoPlayer(galleryViewModel.medias[index]),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('Failed to load video'),
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return AspectRatio(
+                    aspectRatio: detailViewModel.controller!.value.aspectRatio,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: SizedBox(
+                        width: detailViewModel.controller!.value.size.width,
+                        height: detailViewModel.controller!.value.size.height,
+                        child: VideoPlayer(detailViewModel.controller!),
+                      ),
+                    ),
                   );
                 } else {
-                  return Consumer<DetailScreenViewModel>(
-                    builder: (context, detailViewModel, child) {
-                      return AspectRatio(
-                        aspectRatio:
-                            detailViewModel.controller!.value.aspectRatio,
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: SizedBox(
-                            width: detailViewModel.controller!.value.size.width,
-                            height:
-                                detailViewModel.controller!.value.size.height,
-                            child: VideoPlayer(detailViewModel.controller!),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+                  // While the controller is still loading, display a loading spinner
+                  return const Center(child: CircularProgressIndicator());
                 }
               },
             );
-          } else {
+          }
+
+          if (galleryViewModel.medias[index].type == "image") {
             pageWidget = FutureBuilder<AssetEntity?>(
               future: AssetMapper.transformMediaToAssetEntity(
                   galleryViewModel.medias[index]),
@@ -175,6 +167,13 @@ class _DetailScreenState extends State<DetailScreen> {
               },
             );
           }
+
+          pageWidget = pageWidget ??
+              Center(
+                child: Text(
+                    'Unsupported media type ${galleryViewModel.medias[index].type}',
+                    style: const TextStyle(fontSize: 20, color: Colors.white)),
+              );
 
           // Wrap the pageWidget with PageStorageKey
           return Container(
@@ -213,7 +212,9 @@ class _DetailScreenState extends State<DetailScreen> {
                       onPressed: () async {
                     await detailViewModel.toggleFavorite();
                   }),
-                  buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
+                  buildActionButton(Icons.delete, 'Delete', onPressed: () {
+                    
+                  }),
                   buildActionButton(Icons.tag, 'Hash Tag', onPressed: () async {
                     Tag? newTag = await showDialog(
                       context: context,
