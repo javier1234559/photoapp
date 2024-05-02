@@ -4,15 +4,16 @@ import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/presentation/screens/detail_album_screen.dart';
+import 'package:photoapp/presentation/screens/restore_screen.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class RecycleBinScreen extends StatefulWidget {
-  Album album;
+  final Album album;
 
-  RecycleBinScreen({super.key, required this.album});
+  const RecycleBinScreen({super.key, required this.album});
 
   @override
   State<StatefulWidget> createState() => _RecycleBinScreenState();
@@ -29,13 +30,19 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
     _galleryAlbumviewModel.currentAlbum = widget.album;
   }
 
-  void _openDetailScreen(Media media) {
-    Navigator.push(
+  void _openDetailScreen(Media media) async {
+    bool isRefresh = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailAlbumScreen(media: media),
+        builder: (context) => RestoreScreen(media: media),
       ),
-    );
+    ) as bool;
+
+    if (isRefresh) {
+      Provider.of<GalleryAlbumViewModel>(context, listen: false)
+          .refreshAfterRestored(media);
+      setState(() {});
+    }
   }
 
   Widget _buildThumbnail(Media media) {

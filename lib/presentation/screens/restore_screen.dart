@@ -5,25 +5,22 @@ import 'package:photo_view/photo_view.dart';
 import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/domain/model/tag.dart';
-import 'package:photoapp/presentation/screens/add_album_screen.dart';
 import 'package:photoapp/presentation/viewmodel/detail_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/utils/logger.dart';
-import 'package:photoapp/utils/wallpaper.dart';
 import 'package:provider/provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 
-class DetailAlbumScreen extends StatefulWidget {
+class RestoreScreen extends StatefulWidget {
   final Media media;
 
-  const DetailAlbumScreen({super.key, required this.media});
+  const RestoreScreen({super.key, required this.media});
 
   @override
-  State<DetailAlbumScreen> createState() => _DetailAlbumScreenState();
+  State<RestoreScreen> createState() => _RestoreScreenState();
 }
 
-class _DetailAlbumScreenState extends State<DetailAlbumScreen> {
+class _RestoreScreenState extends State<RestoreScreen> {
   late GalleryAlbumViewModel _galleryAlbumViewModel;
   late DetailAlbumViewModel _detailAlbumViewModel;
 
@@ -198,100 +195,18 @@ class _DetailAlbumScreenState extends State<DetailAlbumScreen> {
           builder: (context, _detailAlbumViewModel, child) {
         return BottomAppBar(
           color: Colors.black26,
-          child: SafeArea(
+          child: Center(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  buildActionButton(Icons.share, 'Share', onPressed: () async {
-                    await Share.share(_detailAlbumViewModel.currentMedia.path);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Thank you for sharing with others!'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }),
-                  buildActionButton(Icons.favorite, 'Love',
+                  buildActionButton(Icons.restore, 'Restore',
                       onPressed: () async {
-                    await _detailAlbumViewModel.toggleFavorite();
-                  }),
-                  buildActionButton(Icons.delete, 'Delete', onPressed: () {}),
-                  buildActionButton(Icons.tag, 'Hash Tag', onPressed: () async {
-                    Tag? newTag = await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return const AddHashTag();
-                      },
-                    );
-                    if (newTag != null) {
-                      await _detailAlbumViewModel.creatNewHashTag(newTag);
-                      Navigator.of(context).pop();
-                    }
-                  }),
-                  buildActionButton(Icons.more_vert, 'More',
-                      onPressed: () async {
-                    showMenu(
-                      context: context,
-                      position: const RelativeRect.fromLTRB(100, 550, 8, 0),
-                      items: [
-                        const PopupMenuItem(
-                          value: 1,
-                          child: Text('Add Album'),
-                        ),
-                        const PopupMenuItem(
-                          value: 2,
-                          child: Text('Use as Wallpaper Home Screen'),
-                        ),
-                        const PopupMenuItem(
-                          value: 3,
-                          child: Text('Use as Wallpaper Lock Screen'),
-                        ),
-                        const PopupMenuItem(
-                          value: 4,
-                          child: Text('Use as Wallpaper Both Screen'),
-                        ),
-                      ],
-                    ).then((value) async {
-                      if (value == 1) {
-                        List<Media> listMedia = [
-                          _detailAlbumViewModel.currentMedia
-                        ];
-                        final result = Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  AddAlbumScreen(selectedMedia: listMedia)),
-                                  
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Add to album successfully!'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      } else if (value == 2) {
-                        String result =
-                            await WallpaperHandler.setWallPaperHomeScreen(
-                                _detailAlbumViewModel.currentMedia.path);
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text(result)));
-                      } else if (value == 3) {
-                        String result =
-                            await WallpaperHandler.setWallPaperLockScreen(
-                                _detailAlbumViewModel.currentMedia.path);
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text(result)));
-                      } else if (value == 4) {
-                        String result =
-                            await WallpaperHandler.setWallPaperBothScreen(
-                                _detailAlbumViewModel.currentMedia.path);
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text(result)));
-                      }
-                    });
-                  }),
+                    await _detailAlbumViewModel
+                        .restoreMedia();
+                    Navigator.of(context).pop(true);
+                  })
                 ],
               ),
             ),

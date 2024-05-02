@@ -10,9 +10,9 @@ import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class FavoriteScreen extends StatefulWidget {
-  Album album;
+  final Album album;
 
-  FavoriteScreen({super.key, required this.album});
+  const FavoriteScreen({super.key, required this.album});
 
   @override
   State<StatefulWidget> createState() => _FavoriteScreenState();

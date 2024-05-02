@@ -91,7 +91,7 @@ class _$AppDatabase extends AppDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `title` TEXT NOT NULL, `thumbnailPath` TEXT NOT NULL, `path` TEXT NOT NULL, `numberOfItems` INTEGER NOT NULL, `albumType` TEXT NOT NULL)');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `media` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `path` TEXT NOT NULL, `dateAddedTimestamp` INTEGER NOT NULL, `dateModifiedTimestamp` INTEGER, `type` TEXT NOT NULL, `isFavorite` INTEGER NOT NULL, `isDelete` INTEGER NOT NULL, `duration` TEXT, PRIMARY KEY (`id`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `media_album` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `mediaId` INTEGER NOT NULL, `albumId` INTEGER NOT NULL)');
         await database.execute(
@@ -176,7 +176,7 @@ class _$AlbumDao extends AlbumDao {
   Future<List<MediaEntity>> findAllMediaByAlbumName(String albumName) async {
     return _queryAdapter.queryList(
         'SELECT media.* FROM media   INNER JOIN media_album ON media.id = media_album.mediaId   INNER JOIN album ON media_album.albumId = album.id   WHERE album.title = ?1',
-        mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0),
+        mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0, isDelete: (row['isDelete'] as int) != 0),
         arguments: [albumName]);
   }
 
@@ -292,6 +292,7 @@ class _$MediaDao extends MediaDao {
                   'dateModifiedTimestamp': item.dateModifiedTimestamp,
                   'type': item.type,
                   'isFavorite': item.isFavorite ? 1 : 0,
+                  'isDelete': item.isDelete ? 1 : 0,
                   'duration': item.duration
                 }),
         _mediaEntityUpdateAdapter = UpdateAdapter(
@@ -306,6 +307,7 @@ class _$MediaDao extends MediaDao {
                   'dateModifiedTimestamp': item.dateModifiedTimestamp,
                   'type': item.type,
                   'isFavorite': item.isFavorite ? 1 : 0,
+                  'isDelete': item.isDelete ? 1 : 0,
                   'duration': item.duration
                 }),
         _mediaEntityDeletionAdapter = DeletionAdapter(
@@ -320,6 +322,7 @@ class _$MediaDao extends MediaDao {
                   'dateModifiedTimestamp': item.dateModifiedTimestamp,
                   'type': item.type,
                   'isFavorite': item.isFavorite ? 1 : 0,
+                  'isDelete': item.isDelete ? 1 : 0,
                   'duration': item.duration
                 });
 
@@ -346,7 +349,8 @@ class _$MediaDao extends MediaDao {
             dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?,
             type: row['type'] as String,
             duration: row['duration'] as String?,
-            isFavorite: (row['isFavorite'] as int) != 0));
+            isFavorite: (row['isFavorite'] as int) != 0,
+            isDelete: (row['isDelete'] as int) != 0));
   }
 
   @override
@@ -360,7 +364,8 @@ class _$MediaDao extends MediaDao {
             dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?,
             type: row['type'] as String,
             duration: row['duration'] as String?,
-            isFavorite: (row['isFavorite'] as int) != 0),
+            isFavorite: (row['isFavorite'] as int) != 0,
+            isDelete: (row['isDelete'] as int) != 0),
         arguments: [id]);
   }
 
@@ -376,7 +381,7 @@ class _$MediaDao extends MediaDao {
   Future<List<MediaEntity>> findAllMediaByTitleAlbum(String title) async {
     return _queryAdapter.queryList(
         'SELECT media.*    FROM media    INNER JOIN media_album ON media.id = media_album.mediaId   INNER JOIN album ON album.id = media_album.albumId   WHERE album.title = ?1',
-        mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0),
+        mapper: (Map<String, Object?> row) => MediaEntity(id: row['id'] as String, name: row['name'] as String, path: row['path'] as String, dateAddedTimestamp: row['dateAddedTimestamp'] as int, dateModifiedTimestamp: row['dateModifiedTimestamp'] as int?, type: row['type'] as String, duration: row['duration'] as String?, isFavorite: (row['isFavorite'] as int) != 0, isDelete: (row['isDelete'] as int) != 0),
         arguments: [title]);
   }
 

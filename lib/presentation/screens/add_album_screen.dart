@@ -11,8 +11,9 @@ import 'package:photoapp/utils/constants.dart';
 import 'package:provider/provider.dart';
 
 class AddAlbumScreen extends StatefulWidget {
-  List<Media> selectedMedia;
-  AddAlbumScreen({super.key, required this.selectedMedia});
+  final List<Media> selectedMedia;
+
+  const AddAlbumScreen({super.key, required this.selectedMedia});
 
   @override
   State<AddAlbumScreen> createState() => _AddAlbumScreenState();
@@ -71,13 +72,13 @@ class _AddAlbumScreenState extends State<AddAlbumScreen> {
     );
     if (nameAlbum != null) {
       await albumViewModel.addToAlbum(nameAlbum, selectedMedia);
-      Navigator.of(context).pop();
+      Navigator.of(context).pop('Added to new album successfully');
     }
   }
 
   Future<void> _addToExistAlbum(String nameAlbum) async {
     await albumViewModel.addToAlbum(nameAlbum, selectedMedia);
-    Navigator.of(context).pop();
+    Navigator.of(context).pop('Added to $nameAlbum successfully');
   }
 
   @override

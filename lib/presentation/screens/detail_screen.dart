@@ -212,8 +212,19 @@ class _DetailScreenState extends State<DetailScreen> {
                       onPressed: () async {
                     await detailViewModel.toggleFavorite();
                   }),
-                  buildActionButton(Icons.delete, 'Delete', onPressed: () {
-                    
+                  buildActionButton(Icons.delete, 'Delete',
+                      onPressed: () async {
+                    Media? result = await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return DeleteConfirmDialog(
+                            media: detailViewModel.currentMedia);
+                      },
+                    );
+                    if (result != null) {
+                      await detailViewModel.moveToRecycleBin(result);
+                    }
+                    Navigator.of(context).pop(true);
                   }),
                   buildActionButton(Icons.tag, 'Hash Tag', onPressed: () async {
                     Tag? newTag = await showDialog(
@@ -223,8 +234,11 @@ class _DetailScreenState extends State<DetailScreen> {
                       },
                     );
                     if (newTag != null) {
-                      await detailViewModel.creatNewHashTag(newTag);
-                      Navigator.of(context).pop();
+                      String result =
+                          await detailViewModel.createNewHashTag(newTag);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(result)),
+                      );
                     }
                   }),
                   buildActionButton(Icons.more_vert, 'More',
@@ -235,7 +249,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       items: [
                         const PopupMenuItem(
                           value: 1,
-                          child: Text('Add Album'),
+                          child: Text('Move To Album'),
                         ),
                         const PopupMenuItem(
                           value: 2,
@@ -299,6 +313,40 @@ class _DetailScreenState extends State<DetailScreen> {
   void dispose() {
     detailViewModel.controller?.dispose();
     super.dispose();
+  }
+}
+
+class DeleteConfirmDialog extends StatefulWidget {
+  final Media media;
+  const DeleteConfirmDialog({super.key, required this.media});
+
+  @override
+  State<DeleteConfirmDialog> createState() => _DeleteConfirmDialogState();
+}
+
+class _DeleteConfirmDialogState extends State<DeleteConfirmDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Are you sure to delete this media?'),
+      // content: TextField(
+      //   controller: _textFieldController,
+      // ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop(widget.media);
+          },
+          child: const Text('Yes'),
+        ),
+      ],
+    );
   }
 }
 

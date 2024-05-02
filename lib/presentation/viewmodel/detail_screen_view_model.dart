@@ -55,7 +55,7 @@ class DetailScreenViewModel extends ChangeNotifier {
         _controller?.pause();
       }
       _controller?.dispose();
-       _currentMedia = media;
+      _currentMedia = media;
       _controller = VideoPlayerController.file(File(currentMedia.path));
       await _controller
           ?.initialize()
@@ -103,27 +103,41 @@ class DetailScreenViewModel extends ChangeNotifier {
   Future<void> toggleFavorite() async {
     checkExistMediaAndCreate();
     currentMedia.isFavorite = !currentMedia.isFavorite;
-    LoggingUtil.logDebug(
-        "Favorite status changed to ${currentMedia.isFavorite}");
     await mediaRepository.updateMedia(currentMedia);
 
     // add to favorite list
     if (currentMedia.isFavorite) {
       albumRepository.addMediaToAlbum('Favorite', currentMedia);
-      LoggingUtil.logDebug("Add to favorite list: ${currentMedia.path}");
     } else {
       albumRepository.removeMediaFromAlbum('Favorite', currentMedia);
-      LoggingUtil.logDebug("Remove from favorite list: ${currentMedia.path}");
     }
 
     notifyListeners();
   }
 
-  Future<void> creatNewHashTag(Tag tag) async {
+  Future<String> createNewHashTag(Tag tag) async {
     currentMedia.tags.add(tag);
     await mediaRepository.updateMedia(currentMedia);
     notifyListeners();
+    return "Add new tag: ${tag.name} complete";
   }
+
+
+  Future<void> moveToRecycleBin(Media media) async {
+    checkExistMediaAndCreate();
+    currentMedia.isDelete = !currentMedia.isDelete;
+    await mediaRepository.updateMedia(currentMedia);
+
+    // add to update status
+    if (currentMedia.isDelete) {
+      albumRepository.addMediaToAlbum('Recycle Bin', currentMedia);
+    } else {
+      albumRepository.removeMediaFromAlbum('Recycle Bin', currentMedia);
+    }
+
+    notifyListeners();
+  }
+
 
   @override
   void dispose() {
@@ -132,4 +146,7 @@ class DetailScreenViewModel extends ChangeNotifier {
     _controller?.dispose();
     super.dispose();
   }
+
+
+  
 }

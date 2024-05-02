@@ -125,6 +125,20 @@ class DetailAlbumViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> restoreMedia() async {
+    checkExistMediaAndCreate();
+    currentMedia.isDelete = false;
+    await mediaRepository.updateMedia(currentMedia);
+
+    LoggingUtil.logDebug("Restore media: ${currentMedia.isDelete}");
+    
+    // add to update status
+    albumRepository.removeMediaFromAlbum('Recycle Bin', currentMedia);
+    LoggingUtil.logDebug("Remove from Recycle Bin: ${currentMedia.path}");
+
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     LoggingUtil.logError("DetailAlbumViewModel disposed: ${currentMedia.path}");

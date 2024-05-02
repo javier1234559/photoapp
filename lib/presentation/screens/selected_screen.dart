@@ -8,8 +8,9 @@ import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class SelectMediaScreen extends StatefulWidget {
-  Media firstMediaSelected;
-  SelectMediaScreen({super.key, required this.firstMediaSelected});
+  final Media firstMediaSelected;
+  
+  const SelectMediaScreen({super.key, required this.firstMediaSelected});
 
   @override
   State<StatefulWidget> createState() => _SelectMediaScreenState();

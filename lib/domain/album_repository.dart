@@ -254,7 +254,7 @@ class AlbumLocalRepository extends AlbumRepository {
     if (insertedAlbum == null) {
       throw Exception('Failed to create album');
     }
-    return AlbumMapper.transformToModel(albumEntity);
+    return AlbumMapper.transformToModel(insertedAlbum);
   }
 
   @override

@@ -9,6 +9,7 @@ class Media {
   String type;
   String? duration;
   bool isFavorite;
+  bool isDelete;
   List<Tag> tags;
 
   Media({
@@ -20,25 +21,14 @@ class Media {
     required this.type,
     this.duration,
     this.isFavorite = false,
+    this.isDelete = false,
     required this.tags,
   });
 
   @override
-  toString() {
-    return 'Media{id: $id, name: $name, path: $path, dateAddedTimestamp: $dateAddedTimestamp, dateModifiedTimestamp: $dateModifiedTimestamp, type: $type, duration: $duration, isFavorite: $isFavorite, tags: $tags}';
+  toString(){
+    return 'Media{id: $id, name: $name, path: $path, dateAddedTimestamp: $dateAddedTimestamp, dateModifiedTimestamp: $dateModifiedTimestamp, type: $type, duration: $duration, isFavorite: $isFavorite, isDelete: $isDelete, tags: $tags}';
   }
 
-  toJSon() {
-    return {
-      'id': id,
-      'name': name,
-      'path': path,
-      'dateAddedTimestamp': dateAddedTimestamp,
-      'dateModifiedTimestamp': dateModifiedTimestamp,
-      'type': type,
-      'duration': duration,
-      'isFavorite': isFavorite,
-      'tags': tags.map((tag) => tag.toJSon()).toList(),
-    };
-  }
+
 }

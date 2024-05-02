@@ -22,6 +22,7 @@ class MediaMapper {
       type: entity.type,
       duration: entity.duration,
       isFavorite: entity.isFavorite,
+      isDelete: entity.isDelete,
       tags: tags
           !.map((tag) => Tag(id: tag.id!, name: tag.name, color: tag.color))
           .toList(),
@@ -38,6 +39,7 @@ class MediaMapper {
       type: media.type,
       duration: media.duration,
       isFavorite: media.isFavorite,
+      isDelete: media.isDelete,
     );
   }
 }

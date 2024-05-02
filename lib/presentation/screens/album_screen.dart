@@ -10,9 +10,9 @@ import 'package:photoapp/utils/logger.dart';
 import 'package:provider/provider.dart';
 
 class AlbumScreen extends StatefulWidget {
-  Album album;
+  final  Album album;
 
-  AlbumScreen({super.key, required this.album});
+  const AlbumScreen({super.key, required this.album});
 
   @override
   State<StatefulWidget> createState() => _AlbumScreenState();

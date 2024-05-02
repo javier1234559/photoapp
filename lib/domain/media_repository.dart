@@ -2,7 +2,6 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photoapp/data/dao/media_dao.dart';
 import 'package:photoapp/data/dao/tag_dao.dart';
 import 'package:photoapp/data/entity/media_entity.dart';
-import 'package:photoapp/data/entity/tag_entity.dart';
 import 'package:photoapp/data/mapper/asset_mapper.dart';
 import 'package:photoapp/data/mapper/media_mapper.dart';
 import 'package:photoapp/domain/model/media.dart';

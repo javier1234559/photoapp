@@ -5,7 +5,6 @@ import 'package:photoapp/presentation/screens/init_screen.dart';
 import 'package:photoapp/presentation/screens/search_screen.dart';
 import 'package:photoapp/presentation/screens/setting_screen.dart';
 import 'package:photoapp/presentation/viewmodel/album_view_model.dart';
-import 'package:photoapp/presentation/viewmodel/detail_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';

@@ -23,13 +23,17 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
-  void _openDetailScreen(Media media) {
-    Navigator.push(
+  void _openDetailScreen(Media media) async {
+    bool isRefresh = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DetailScreen(media: media),
       ),
-    );
+    ) as bool;
+
+    if (isRefresh) {
+      Provider.of<GalleryViewModel>(context, listen: false).refreshMedia();
+    }
   }
 
   Widget _buildThumbnail(Media media) {
@@ -138,8 +142,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
                     ),
                   );
 
-                  // Do something with the returned selected media
-                  print(selectedMedia);
                   List<Media>? listMedia = selectedMedia;
                   if (listMedia != null && listMedia.isNotEmpty) {
                     Navigator.push(
