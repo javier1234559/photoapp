@@ -19,7 +19,7 @@ class SettingsScreen extends StatelessWidget {
         child: Consumer<InitViewModel>(
           builder: (context, viewModel, child) {
             return SwitchListTile(
-              title: Text('Dark Mode'),
+              title: const Text('Dark Mode'),
               value: viewModel.themeMode == ThemeMode.dark,
               onChanged: (bool value) {
                 viewModel.toggleTheme(value);

@@ -1,11 +1,26 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-Future<String?> getThemeFromSharedPref() async {
-  SharedPreferences sharedPref = await SharedPreferences.getInstance();
-  return sharedPref.getString('theme');
-}
+class SharedPreferencesUtil {
+  static const String _keyThemeMode = 'themeMode';
+  static const String _keyIsSetUpDefaultAlbum = 'isSetUpDefaultAlbum';
 
-void setThemeinSharedPref(String val) async {
-  SharedPreferences sharedPref = await SharedPreferences.getInstance();
-  sharedPref.setString('theme', val);
+  static Future<bool> loadIsSetUpDefaultAlbum() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyIsSetUpDefaultAlbum) ?? false;
+  }
+
+  static Future<void> saveIsSetUpDefaultAlbum(bool isSetUp) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyIsSetUpDefaultAlbum, isSetUp);
+  }
+
+  static Future<bool> loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyThemeMode) ?? false;
+  }
+
+  static Future<void> saveThemeMode(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyThemeMode, isDark);
+  }
 }

@@ -23,6 +23,7 @@ class GalleryScreen extends StatefulWidget {
 }
 
 class _GalleryScreenState extends State<GalleryScreen> {
+  
   void _openDetailScreen(Media media) async {
     bool isRefresh = await Navigator.push(
       context,

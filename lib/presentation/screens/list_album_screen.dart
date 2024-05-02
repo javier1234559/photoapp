@@ -140,7 +140,6 @@ class _ListAlbumScreenState extends State<ListAlbumScreen> {
                   ],
                 ),
                 SizedBox(
-                  height: constraints.maxHeight * 0.5, // 50% of screen height
                   child: SingleChildScrollView(
                     child: GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),

@@ -33,9 +33,6 @@ abstract class AlbumRepository {
 
   Future<Album> createRecycleBinAlbum({String title, String path});
 
-  Future<void> moveToRecycleBin(Media media);
-
-  Future<void> restoreMedia(Media media);
 }
 
 class AlbumLocalRepository extends AlbumRepository {
@@ -267,15 +264,4 @@ class AlbumLocalRepository extends AlbumRepository {
     await albumDao.deleteMediaFromAlbum(title, media.id);
   }
 
-  @override
-  Future<void> moveToRecycleBin(Media media) {
-    // TODO: implement moveToRecycleBin
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> restoreMedia(Media media) {
-    // TODO: implement restoreMedia
-    throw UnimplementedError();
-  }
 }

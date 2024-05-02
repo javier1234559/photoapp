@@ -129,9 +129,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: RefreshIndicator(
-          onRefresh: () async {
-            print('Refresh _galleryAlbumviewModel.currentAlbum');
-          },
+          onRefresh: () async {},
           child: GridView.builder(
             itemCount: _galleryAlbumviewModel.currentAlbum.medias.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -142,14 +140,16 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             itemBuilder: (context, index) {
               return GestureDetector(
                   onTap: () {
-                    _openDetailScreen(_galleryAlbumviewModel.currentAlbum.medias[index]);
+                    _openDetailScreen(
+                        _galleryAlbumviewModel.currentAlbum.medias[index]);
                   },
                   child: SizedBox(
                     width: 150,
                     height: 150,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(5),
-                      child: _buildThumbnail(_galleryAlbumviewModel.currentAlbum.medias[index]),
+                      child: _buildThumbnail(
+                          _galleryAlbumviewModel.currentAlbum.medias[index]),
                     ),
                   ) //
                   );

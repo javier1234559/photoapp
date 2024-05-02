@@ -267,7 +267,7 @@ class _DetailScreenState extends State<DetailScreen> {
                     ).then((value) async {
                       if (value == 1) {
                         List<Media> listMedia = [detailViewModel.currentMedia];
-                        final result = Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>

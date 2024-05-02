@@ -43,7 +43,8 @@ class MediaLocalRepository extends MediaRepository {
 
       //create tags
       for (var tag in media.tags) {
-        await tagDao.createHashTagToMedia(media.id, tag.name, tag.color.toString());
+        await tagDao.createHashTagToMedia(
+            media.id, tag.name, tag.color.toString());
       }
 
       LoggingUtil.logInfor('Update media with id: ${media.id}');
@@ -96,8 +97,15 @@ class AssetMediaRepository extends MediaRepository {
       return asset.type == AssetType.image || asset.type == AssetType.video;
     }).toList();
 
-    final List<Media> mediaList = await Future.wait(mediaAssets
-        .map((asset) => AssetMapper.transformAssetEntityToMedia(asset)));
+    List<Media> mediaList = [];
+    for (var asset in mediaAssets) {
+      try {
+        Media media = await AssetMapper.transformAssetEntityToMedia(asset);
+        mediaList.add(media);
+      } catch (e) {
+        LoggingUtil.logError('Error transforming asset to media: $e');
+      }
+    }
     return mediaList;
   }
 }

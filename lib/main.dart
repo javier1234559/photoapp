@@ -34,7 +34,7 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (context) => InitViewModel(),
-        ),
+        )
       ],
       child: const MyApp(),
     ),

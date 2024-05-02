@@ -8,6 +8,7 @@ import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
 import 'package:photoapp/utils/logger.dart';
 import 'package:photoapp/utils/permission.dart';
+import 'package:photoapp/utils/share_preferences.dart';
 
 class AlbumViewModel extends ChangeNotifier {
   late final AlbumRepository albumRepository;
@@ -51,8 +52,19 @@ class AlbumViewModel extends ChangeNotifier {
     albumRepository = AlbumLocalRepository(
         albumDao: albumDao, mediaDao: mediaDao, tagDao: tagDao);
     // Load default albums
-    albumMap = await albumRepository.persistAlbumDefault();
+
+    checkAndLoadDefault();
+  }
+
+  void checkAndLoadDefault() async {
+    bool isAlreadyLoad = await SharedPreferencesUtil.loadIsSetUpDefaultAlbum();
+    if (!isAlreadyLoad) {
+      albumMap = await albumRepository.persistAlbumDefault();
+      await SharedPreferencesUtil.saveIsSetUpDefaultAlbum(true);
+    }
+
     await loadAlbums();
+    notifyListeners();
   }
 
   Future<List<Album>> loadAlbums({offset = 0, limit = 20}) async {
@@ -63,7 +75,7 @@ class AlbumViewModel extends ChangeNotifier {
   }
 
   Future<void> refreshAlbum() async {
-    albumMap = await albumRepository.persistAlbumDefault();
+    await albumRepository.persistAlbumDefault();
     await loadAlbums();
     notifyListeners();
   }

@@ -258,7 +258,7 @@ class _DetailAlbumScreenState extends State<DetailAlbumScreen> {
                         List<Media> listMedia = [
                           _detailAlbumViewModel.currentMedia
                         ];
-                        final result = Navigator.push(
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) =>

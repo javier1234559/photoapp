@@ -3,7 +3,6 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_manager_image_provider/photo_manager_image_provider.dart';
 import 'package:photoapp/domain/model/album.dart';
 import 'package:photoapp/domain/model/media.dart';
-import 'package:photoapp/presentation/screens/detail_album_screen.dart';
 import 'package:photoapp/presentation/screens/restore_screen.dart';
 import 'package:photoapp/presentation/viewmodel/gallery_album_view_model.dart';
 import 'package:photoapp/presentation/viewmodel/init_view_model.dart';
@@ -136,7 +135,6 @@ class _RecycleBinScreenState extends State<RecycleBinScreen> {
         padding: const EdgeInsets.all(8.0),
         child: RefreshIndicator(
           onRefresh: () async {
-            print('Refresh _galleryAlbumviewModel.currentAlbum');
           },
           child: GridView.builder(
             itemCount: _galleryAlbumviewModel.currentAlbum.medias.length,
