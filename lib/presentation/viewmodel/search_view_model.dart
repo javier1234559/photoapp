@@ -49,7 +49,7 @@ class SearchViewModel extends ChangeNotifier {
         MediaLocalRepository(mediaDao: mediaDao, tagDao: tagDao);
   }
 
-  Future<List<Media>> loadRecentMedia({offset = 0, limit = 200}) async {
+  Future<List<Media>> loadRecentMedia({offset = 0, limit = 200}) async { 
     await PermissionHandler.requestPermissions();
     await _initialDatabase();
     List<Media> assetMedias =

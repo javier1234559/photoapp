@@ -47,7 +47,17 @@ class GalleryViewModel extends ChangeNotifier {
     await PermissionHandler.requestPermissions();
     List<Media> assetMedias =
         await mediaAssetRepository.getAllMedia(offset, limit);
-    LoggingUtil.logInfor('Media loaded: ${medias.length} items');
+    LoggingUtil.logInfor('Media loaded: ${assetMedias.length} items');
+
+     // save database again
+    for (var assetMedia in assetMedias) {
+      bool check = medias.any((element) => element.id == assetMedia.id);
+      if (!check) {
+        mediaLocalRepository.createMedia(assetMedia);
+      }
+    }
+
+
     medias = await filterMediaInRecycleBin(assetMedias);
     return medias;
   }
@@ -56,7 +66,8 @@ class GalleryViewModel extends ChangeNotifier {
     List<Media> medias = await mediaLocalRepository.getAllMedia(0, 200);
     medias = medias.where((element) => element.isDelete == false).toList();
 
-    if (medias.isEmpty) { //if there is no media in databasse
+    if (medias.isEmpty) {
+      //if there is no media in databasse
       return assetMedias;
     }
 

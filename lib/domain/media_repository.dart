@@ -78,8 +78,16 @@ class MediaLocalRepository extends MediaRepository {
   @override
   Future<List<Media>> getAllMedia(int offset, int limit) async {
     final List<MediaEntity> mediaEntities = await mediaDao.findAllMedia();
-    final List<Media> medias = await Future.wait(mediaEntities
-        .map((mediaEntity) => MediaMapper.transformToModel(mediaEntity)));
+
+    List<Media> medias = [];
+    for (var mediaEntity in mediaEntities) {
+      try {
+        Media media = await MediaMapper.transformToModel(mediaEntity);
+        medias.add(media);
+      } catch (e) {
+        LoggingUtil.logError('Error transforming asset to media: $e');
+      }
+    }
     return medias;
   }
 }
